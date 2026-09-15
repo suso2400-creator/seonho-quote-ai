@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>선호테크 견적서 AI</title>
+<meta name="description" content="선호테크 프레스 가공품 견적서 자동 생성 — 소재 판취·프레스 임률·후공정·금형비로 단가를 산출하고 A4 견적서를 인쇄합니다">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  /* 「스틸 블루」 — 프레스·금형(금속) 업종에 맞춘 차가운 회청색 팔레트. 항상 밝게 시작하고 다크는 전환 버튼으로만 */
+  --bg:#F1F4F8; --surface:#FFFFFF; --surface-2:#E8EDF4; --surface-3:#DDE5F0;
+  --ink:#141C28; --ink-2:#465469; --ink-3:#7E8BA0; --line:#CFD8E4; --line-2:#E1E7EF;
+  --accent:#1D5FAE; --accent-ink:#FFFFFF; --accent-soft:#DDE8F7; --accent-deep:#144A8A;
+  --good:#0B7F3B; --good-soft:#DCF2E3; --warn:#A5651A; --warn-soft:#F7EAD2; --crit:#BE3A3A; --crit-soft:#F8E0E0;
+  --paper:#FFFFFF; --paper-ink:#111111; --paper-line:#333333; --paper-muted:#666666; --paper-shade:#F1F1F1;
+  --focus:#1D5FAE; --shadow:0 1px 2px rgba(20,28,40,.05),0 8px 30px rgba(20,28,40,.06);
+  --radius:6px; --font:"IBM Plex Sans KR","Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  --serif:"Noto Serif KR","Nanum Myeongjo","Batang",serif;
+}
+html[data-mode="dark"]{
+  color-scheme:dark;
+  --bg:#10151D; --surface:#171E29; --surface-2:#1F2836; --surface-3:#293445;
+  --ink:#E9EEF5; --ink-2:#A9B5C6; --ink-3:#74829A; --line:#2F3B4D; --line-2:#28323F;
+  --accent:#6AA3EA; --accent-ink:#0F1622; --accent-soft:#1E2F47; --accent-deep:#A9C8F3;
+  --good:#3FBF6F; --good-soft:#173324; --warn:#E0A64A; --warn-soft:#3A2D14; --crit:#E36A6A; --crit-soft:#3B1C1C;
+  --focus:#6AA3EA; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.5;font-variant-numeric:tabular-nums}
+h1,h2,h3,h4{margin:0;text-wrap:balance;line-height:1.3}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:6px 8px;min-height:34px;width:100%;max-width:100%}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+input[type=number]{text-align:right}
+input:disabled{background:var(--surface-2);color:var(--ink-3)}
+textarea{resize:vertical;min-height:60px}
+label{display:block;font-size:12px;color:var(--ink-2);margin-bottom:3px;letter-spacing:.01em}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 12px;border-radius:4px;cursor:pointer;min-height:34px;white-space:nowrap;text-decoration:none}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(.95)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.btn.ghost:hover{background:var(--surface-2);color:var(--ink)}
+.btn.danger{color:var(--crit);border-color:var(--crit)}
+.btn.sm{padding:4px 8px;min-height:28px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.topbar{background:var(--surface);color:var(--ink);position:sticky;top:0;z-index:20;box-shadow:0 1px 0 var(--line)}
+.topbar-in{max-width:1480px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:18px;min-height:56px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px;padding:8px 0}
+.brand .mark{font-family:var(--serif);font-weight:700;font-size:19px;letter-spacing:.02em}
+.brand .co{font-size:12px;color:var(--ink-3);letter-spacing:.06em}
+.nav{display:flex;gap:2px;margin-left:8px}
+.nav button{background:transparent;border:0;color:var(--ink-2);padding:18px 12px;cursor:pointer;border-bottom:3px solid transparent;font-weight:500}
+.nav button:hover{color:var(--ink)}
+.nav button.on{color:var(--accent-deep);border-bottom-color:var(--accent)}
+.top-actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;padding:8px 0}
+main{max-width:1480px;margin:0 auto;padding-block:20px 60px;padding-inline:20px}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.col-form{display:flex;flex-direction:column;gap:16px;min-width:0}
+.col-preview{position:sticky;top:72px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.panel{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius)}
+.panel-h{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line-2);flex-wrap:wrap}
+.panel-h h2{font-size:14px;font-weight:600}
+.panel-h .sub{font-size:12px;color:var(--ink-3)}
+.panel-h .right{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.panel-b{padding:14px}
+.grid{display:grid;gap:10px 12px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.span2{grid-column:span 2}
+.span3{grid-column:span 3}
+.field .hint{font-size:11px;color:var(--ink-3);margin-top:2px}
+.unit-in{position:relative}
+.unit-in input{padding-left:6px;padding-right:30px}
+.unit-in .u{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--ink-3);pointer-events:none}
+.item{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.item-h{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface-2);border-bottom:1px solid var(--line-2)}
+.item-h .no{width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.item-h .nm{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-h .amt{font-size:12px;color:var(--ink-2);white-space:nowrap}
+.item-b{padding:12px;display:flex;flex-direction:column;gap:10px}
+.sec{font-size:11px;letter-spacing:.06em;color:var(--ink-3);font-weight:600;margin-top:4px;padding-bottom:3px;border-bottom:1px dashed var(--line-2);display:flex;align-items:center;gap:8px}
+.sec .right{margin-left:auto}
+.proctbl{width:100%;border-collapse:collapse;min-width:660px}
+.proctbl td:nth-child(2) input{min-width:140px}
+.proctbl th{font-size:11px;color:var(--ink-3);text-align:left;padding:2px 4px;font-weight:600;white-space:nowrap}
+.proctbl td{padding:2px 3px;vertical-align:middle}
+.proctbl input,.proctbl select{min-height:30px;padding:4px 6px}
+.proctbl td.idx{width:26px;text-align:center;color:var(--ink-3);font-size:12px}
+.proctbl td.cost{font-size:11px;color:var(--ink-3);white-space:nowrap;text-align:right;width:88px}
+.cost-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--line-2);border:1px solid var(--line-2);border-radius:4px;overflow:hidden;margin-top:4px}
+.cost-strip div{background:var(--surface);padding:6px 8px;font-size:12px;min-width:0}
+.cost-strip b{display:block;font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap}
+.cost-strip .k{color:var(--ink-3)}
+.cost-strip .hl{background:var(--accent-soft)}
+.cost-strip .hl b{color:var(--accent-deep)}
+.calc-line{font-size:12px;color:var(--ink-3);display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center}
+.calc-line b{color:var(--ink-2);font-weight:500}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--surface-3);color:var(--ink-2);font-weight:500;white-space:nowrap}
+.chip.good{background:var(--good-soft);color:var(--good)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.crit{background:var(--crit-soft);color:var(--crit)}
+.chip.acc{background:var(--accent-soft);color:var(--accent-deep)}
+.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line-2);border-radius:var(--radius);overflow:hidden;border:1px solid var(--line-2)}
+.summary>div{background:var(--surface);padding:10px 12px;min-width:0}
+.summary .k{font-size:11px;color:var(--ink-3);letter-spacing:.04em}
+.summary .v{font-size:18px;font-weight:600;margin-top:2px;white-space:nowrap}
+.summary>.total{background:var(--accent);color:var(--accent-ink)}
+.summary .total .k{color:var(--accent-ink);opacity:.75}
+.paper-wrap{overflow:hidden;background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--radius);padding:16px}
+.paper-scale{transform-origin:top left;width:794px}
+.paper{width:794px;min-height:1123px;background:var(--paper);color:var(--paper-ink);padding:44px 48px 70px;font-family:var(--font);font-size:12.5px;line-height:1.45;box-shadow:0 2px 10px rgba(0,0,0,.18);position:relative}
+.paper h1{font-family:var(--serif);font-size:30px;letter-spacing:.42em;text-align:center;font-weight:700;margin:0 0 20px;padding-left:.42em}
+.paper .meta{display:grid;grid-template-columns:1fr 1.15fr;gap:14px;margin-bottom:16px;align-items:end}
+.paper table{border-collapse:collapse;width:100%}
+.paper .boxtbl td,.paper .boxtbl th{border:1px solid var(--paper-line);padding:4px 6px;font-size:11.5px;vertical-align:middle}
+.paper .boxtbl th{background:var(--paper-shade);font-weight:600;text-align:center;white-space:nowrap}
+.paper .lefttbl td{padding:3px 4px;font-size:12px;vertical-align:top}
+.paper .lefttbl td.k{color:var(--paper-muted);width:64px;white-space:nowrap}
+.paper .lefttbl .to{font-size:16px;font-weight:700;letter-spacing:.02em}
+.paper .stamp{position:relative;padding-right:44px!important}
+.paper .stamp span{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:1.5px solid #C0392B;border-radius:50%;color:#C0392B;font-size:9px;display:flex;align-items:center;justify-content:center;opacity:.55;letter-spacing:.05em}
+.paper .intro{margin:4px 0 8px;font-size:12.5px}
+.paper .total-line{display:flex;justify-content:space-between;align-items:center;border-top:2px solid var(--paper-ink);border-bottom:1px solid var(--paper-ink);padding:6px 8px;margin-bottom:12px;font-size:13.5px;gap:8px;flex-wrap:wrap}
+.paper .total-line b{font-size:15px}
+.paper .total-line .vatnote{font-size:11px;color:var(--paper-muted);margin-left:8px}
+.paper .items th{background:var(--paper-shade);border:1px solid var(--paper-line);padding:5px 4px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.paper .items td{border:1px solid var(--paper-line);padding:5px 5px;font-size:11.5px;vertical-align:top}
+.paper .items td.n{text-align:right;white-space:nowrap}
+.paper .items td.c{text-align:center}
+.paper .items .spec{color:var(--paper-muted);font-size:10.5px;line-height:1.35}
+.paper .items tr.sum td{background:var(--paper-shade);font-weight:600}
+.paper .items tr.blank td{height:22px;border-top:0;border-bottom:0}
+.paper .terms{margin-top:14px;font-size:11.5px}
+.paper .terms td{padding:3px 4px;vertical-align:top;border-bottom:1px dotted var(--paper-line)}
+.paper .terms td.k{width:78px;color:var(--paper-muted);white-space:nowrap}
+.paper .foot{position:absolute;left:48px;right:48px;bottom:30px;font-size:10.5px;color:var(--paper-muted);display:flex;justify-content:space-between;border-top:1px solid var(--paper-line);padding-top:6px}
+.paper .cost-page{page-break-before:always;margin-top:40px;border-top:2px dashed var(--paper-line);padding-top:24px}
+.paper .cost-page h2{font-family:var(--serif);font-size:18px;letter-spacing:.2em;text-align:center;margin-bottom:6px}
+.paper .cost-page .note{font-size:11px;color:var(--paper-muted);text-align:center;margin-bottom:12px}
+.paper .cost-page table{margin-bottom:12px}
+.paper .cost-page th{background:var(--paper-shade);border:1px solid var(--paper-line);padding:4px;font-size:10px;font-weight:600;white-space:nowrap}
+.paper .cost-page td{border:1px solid var(--paper-line);padding:4px;font-size:10px;text-align:right;white-space:nowrap}
+.paper .cost-page td:first-child{text-align:left;white-space:normal}
+.list table{width:100%;border-collapse:collapse;min-width:720px}
+.list th{font-size:11px;letter-spacing:.06em;color:var(--ink-3);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap}
+.list td{padding:9px 10px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+.list td.n{text-align:right;white-space:nowrap}
+.list tr:hover td{background:var(--surface-2)}
+.list .no{font-weight:600;color:var(--accent-deep);cursor:pointer;background:none;border:0;padding:0;font-family:inherit}
+.list select{min-height:28px;padding:2px 6px;width:auto}
+.tbl-wrap{overflow-x:auto}
+.settbl{width:100%;border-collapse:collapse;min-width:640px}
+.settbl th{font-size:11px;color:var(--ink-3);text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap}
+.settbl td{padding:3px 4px;border-bottom:1px solid var(--line-2)}
+.settbl input,.settbl select{min-height:30px;padding:4px 6px}
+.settbl td.idx{width:34px;text-align:center;color:var(--ink-3);font-size:12px}
+.empty{padding:36px 16px;text-align:center;color:var(--ink-3)}
+.status{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;white-space:nowrap}
+.note-box{background:var(--surface-2);border-left:3px solid var(--accent);padding:8px 12px;font-size:12px;color:var(--ink-2);border-radius:0 4px 4px 0}
+.formula{font-size:12px;color:var(--ink-2);display:grid;gap:4px 16px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.formula b{color:var(--ink);font-weight:600}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--surface);padding:9px 16px;border-radius:4px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:50;max-width:calc(100% - 32px)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.mobile-tabs{display:none;gap:4px;margin-bottom:12px}
+.mobile-tabs button{flex:1;justify-content:center}
+.mobile-tabs button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.calc-line{font-size:12px}
+.radio-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:13px}
+.radio-row label{display:inline-flex;align-items:center;gap:5px;margin:0;font-size:13px;color:var(--ink)}
+.radio-row input{width:auto;min-height:0}
+.check{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);margin:0}
+.check input{width:auto;min-height:0}
+.file-btn{position:relative;overflow:hidden}
+.file-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.theme-seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface);align-self:center}
+.theme-seg button{font:inherit;font-size:12px;color:var(--ink-2);background:none;border:0;padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;min-height:32px}
+.theme-seg button[aria-pressed="true"]{background:var(--surface-2);color:var(--ink);font-weight:500}
+.theme-seg button:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.theme-seg svg{width:13px;height:13px;display:block}
+@media (max-width:1100px){
+  .workspace{grid-template-columns:1fr}
+  .col-preview{position:static}
+  .mobile-tabs{display:flex}
+  .workspace[data-m="form"] .col-preview{display:none}
+  .workspace[data-m="preview"] .col-form{display:none}
+}
+@media (max-width:720px){
+  .topbar-in{padding:0 12px;gap:8px}
+  .nav{margin-left:0}
+  .nav button{padding:12px 8px;font-size:13px}
+  main{padding-inline:16px}
+  .g3,.g4,.g6{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .span3{grid-column:span 2}
+  .cost-strip{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .formula{grid-template-columns:1fr}
+  .item-h{flex-wrap:wrap;row-gap:4px}
+  .item-h .nm{flex-basis:100%}
+  .summary{grid-template-columns:1fr}
+  .paper-wrap{padding:8px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{
+  @page{size:A4 portrait;margin:10mm 10mm}
+  html[data-mode="dark"]{color-scheme:light;--bg:#fff;--surface:#fff;--ink:#141C28}
+  body{background:#fff}
+  .topbar,.col-form,.mobile-tabs,.preview-tools,.summary,#toast,.note-box,.theme-seg{display:none!important}
+  main{padding:0;max-width:none}
+  .workspace{display:block}
+  .workspace .col-preview{position:static;display:block!important}
+  .paper-wrap{padding:0;border:0;background:#fff;overflow:visible;height:auto!important}
+  .paper-scale{transform:none!important;width:auto!important}
+  .paper{box-shadow:none;width:auto;min-height:0;padding:0;font-size:12px}
+  .paper .foot{position:static;margin-top:16px}
+  .paper .cost-page{border-top:0;margin-top:0;padding-top:0}
+}
+</style>
+<script>try{if(localStorage.getItem('sh-theme')==='dark')document.documentElement.setAttribute('data-mode','dark')}catch(e){}</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="mark">선호테크 견적서 AI</span><span class="co" id="brandCo">프레스 가공</span></div>
+    <nav class="nav" id="nav">
+      <button type="button" data-view="quote" class="on">견적 작성</button>
+      <button type="button" data-view="list">견적 목록</button>
+      <button type="button" data-view="settings">기준 정보</button>
+    </nav>
+    <div class="top-actions">
+      <button type="button" class="btn" id="btnNew">＋ 새 견적</button>
+      <button type="button" class="btn" id="btnSave">저장</button>
+      <button type="button" class="btn primary" id="btnPrint">인쇄 · PDF 저장</button>
+      <div class="theme-seg" role="group" aria-label="화면 밝기">
+        <button type="button" data-mode-btn="light" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>라이트</button>
+        <button type="button" data-mode-btn="dark" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>다크</button>
+      </div>
+    </div>
+  </div>
+</header>
+<main>
+<section id="view-quote">
+  <div class="mobile-tabs">
+    <button type="button" class="btn on" data-m="form">입력</button>
+    <button type="button" class="btn" data-m="preview">견적서 미리보기</button>
+  </div>
+  <div class="workspace" id="workspace" data-m="form">
+    <div class="col-form">
+      <div class="panel">
+        <div class="panel-h"><h2>견적 정보</h2><span class="sub" id="qDirty"></span>
+          <div class="right"><label class="check" for="q_status" style="margin-right:6px">상태</label>
+            <select id="q_status" data-q="status" style="width:auto;min-height:30px;padding:3px 6px">
+              <option value="draft">작성중</option><option value="sent">발송</option><option value="won">수주</option><option value="lost">실주</option>
+            </select></div>
+        </div>
+        <div class="panel-b grid g3">
+          <div class="field"><label for="q_no">견적번호</label><input id="q_no" data-q="no"></div>
+          <div class="field"><label for="q_date">견적일자</label><input id="q_date" type="date" data-q="date"></div>
+          <div class="field"><label for="q_valid">유효기간 (까지)</label><input id="q_valid" type="date" data-q="validUntil"></div>
+          <div class="field"><label for="c_name">수신 (거래처)</label><input id="c_name" data-q="customer.name" placeholder="㈜○○전장"></div>
+          <div class="field"><label for="c_person">부서 · 담당자</label><input id="c_person" data-q="customer.person" placeholder="구매팀 홍길동 과장"></div>
+          <div class="field"><label for="c_tel">담당자 연락처</label><input id="c_tel" data-q="customer.tel" placeholder="031-000-0000"></div>
+          <div class="field span2"><label for="q_subject">건명</label><input id="q_subject" data-q="subject" placeholder="○○ 브라켓 외 프레스 가공품 견적"></div>
+          <div class="field"><label for="c_email">담당자 이메일</label><input id="c_email" data-q="customer.email" placeholder="buyer@example.com"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h"><h2>견적 품목</h2><span class="sub">소재 판취 · 프레스 공정 · 후공정에서 단가가 자동 계산됩니다</span>
+          <div class="right"><button type="button" class="btn sm primary" id="btnAddItem">＋ 품목 추가</button></div></div>
+        <div class="panel-b" style="display:flex;flex-direction:column;gap:12px" id="items"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h"><h2>견적 조건</h2><span class="sub">기준 정보의 기본값이 채워집니다</span></div>
+        <div class="panel-b grid g2">
+          <div class="field"><label for="t_delivery">납기</label><input id="t_delivery" data-q="terms.delivery"></div>
+          <div class="field"><label for="t_payment">결제조건</label><input id="t_payment" data-q="terms.payment"></div>
+          <div class="field"><label for="t_place">인도조건</label><input id="t_place" data-q="terms.place"></div>
+          <div class="field"><label for="t_packing">포장</label><input id="t_packing" data-q="terms.packing"></div>
+          <div class="field span2"><label for="t_note">비고</label><textarea id="t_note" data-q="terms.note"></textarea></div>
+          <div class="span2 radio-row">
+            <span style="color:var(--ink-2);font-size:12px">합계 표기</span>
+            <label><input type="radio" name="opt_vat" value="excl" data-q="vatMode"> 부가세 별도</label>
+            <label><input type="radio" name="opt_vat" value="incl" data-q="vatMode"> 부가세 포함</label>
+            <label class="check" style="margin-left:auto"><input type="checkbox" id="opt_costpage" data-q="costPage"> 원가 내역서(내부용) 함께 출력</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-preview">
+      <div class="summary" id="summary"></div>
+      <div class="toolbar preview-tools">
+        <button type="button" class="btn sm" id="btnCsv">CSV(엑셀) 내보내기</button>
+        <button type="button" class="btn sm" id="btnCopy">견적 내용 텍스트 복사</button>
+        <button type="button" class="btn sm" id="btnDup">이 견적 복제</button>
+        <span style="margin-left:auto;font-size:11px;color:var(--ink-3)">A4 세로 · Ctrl+S 저장</span>
+      </div>
+      <div class="paper-wrap" id="paperWrap"><div class="paper-scale" id="paperScale"><div class="paper" id="paper"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="view-list" hidden>
+  <div class="panel">
+    <div class="panel-h"><h2>저장된 견적</h2><span class="sub" id="listCount"></span>
+      <div class="right">
+        <input id="listSearch" placeholder="거래처 · 건명 · 번호 검색" style="width:220px;min-height:30px;padding:4px 8px">
+        <select id="listFilter" style="width:auto;min-height:30px;padding:3px 6px">
+          <option value="">전체 상태</option><option value="draft">작성중</option><option value="sent">발송</option><option value="won">수주</option><option value="lost">실주</option>
+        </select>
+      </div>
+    </div>
+    <div class="panel-b list tbl-wrap" id="listBody"></div>
+    <div class="panel-b toolbar" style="border-top:1px solid var(--line-2)">
+      <button type="button" class="btn sm" id="btnBackup">전체 백업 (JSON)</button>
+      <span class="btn sm file-btn">백업 복원 (JSON)<input type="file" id="restoreFile" accept="application/json"></span>
+      <span style="font-size:11px;color:var(--ink-3);margin-left:auto">데이터는 이 브라우저(PC)에만 저장됩니다. 다른 PC로 옮길 때 백업을 사용하세요.</span>
+    </div>
+  </div>
+</section>
+
+<section id="view-settings" hidden>
+  <div class="col-form">
+    <div class="note-box">여기의 값은 견적서의 공급자란과 단가 계산에 바로 쓰입니다. 입력 즉시 저장되며, 예시로 채워진 프레스 임률·소재 단가는 실제 값으로 바꿔 쓰세요.</div>
+    <div class="panel">
+      <div class="panel-h"><h2>자사 정보 (공급자)</h2></div>
+      <div class="panel-b grid g3">
+        <div class="field"><label for="s_name">상호</label><input id="s_name" data-s="company.name"></div>
+        <div class="field"><label for="s_ceo">대표자</label><input id="s_ceo" data-s="company.ceo"></div>
+        <div class="field"><label for="s_regno">사업자등록번호</label><input id="s_regno" data-s="company.regno" placeholder="000-00-00000"></div>
+        <div class="field span2"><label for="s_addr">주소</label><input id="s_addr" data-s="company.addr" placeholder="경기도 시흥시 ○○로 00 (○○동)"></div>
+        <div class="field"><label for="s_manager">견적 담당자</label><input id="s_manager" data-s="company.manager" placeholder="영업팀 ○○○"></div>
+        <div class="field"><label for="s_tel">전화</label><input id="s_tel" data-s="company.tel" placeholder="031-000-0000"></div>
+        <div class="field"><label for="s_fax">팩스</label><input id="s_fax" data-s="company.fax"></div>
+        <div class="field"><label for="s_email">이메일</label><input id="s_email" data-s="company.email"></div>
+        <div class="field"><label for="s_biz">업태</label><input id="s_biz" data-s="company.biz"></div>
+        <div class="field"><label for="s_item">종목</label><input id="s_item" data-s="company.item"></div>
+        <div class="field"><label for="s_bank">입금계좌 (선택)</label><input id="s_bank" data-s="company.bank" placeholder="○○은행 000-000-000000 선호테크"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h"><h2>프레스 설비</h2><span class="sub">보유 5대 · 시간당 임률은 (감가상각 + 전력 + 작업자 인건비 + 유지보수) ÷ 월 가동시간</span>
+        <div class="right"><button type="button" class="btn sm" id="btnAddPress">＋ 프레스 추가</button></div></div>
+      <div class="panel-b tbl-wrap"><table class="settbl" id="pressTbl"></table></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h"><h2>소재 단가표</h2><span class="sub">원/kg · 견적일 시세로 갱신 · 전단강도는 필요 톤수 검토용</span>
+        <div class="right"><button type="button" class="btn sm" id="btnAddMat">＋ 소재 추가</button></div></div>
+      <div class="panel-b tbl-wrap"><table class="settbl" id="matTbl"></table></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h"><h2>원가 계수</h2><span class="sub">단가 산출에 공통 적용</span></div>
+      <div class="panel-b grid g4">
+        <div class="field"><label for="f_loss">소재 로스율</label><div class="unit-in"><input id="f_loss" type="number" step="0.5" data-s="factors.loss"><span class="u">%</span></div><div class="hint">코일 끝단 · 시운전 소재</div></div>
+        <div class="field"><label for="f_defect">불량률</label><div class="unit-in"><input id="f_defect" type="number" step="0.5" data-s="factors.defect"><span class="u">%</span></div></div>
+        <div class="field"><label for="f_util">설비 가동률</label><div class="unit-in"><input id="f_util" type="number" step="5" data-s="factors.util"><span class="u">%</span></div><div class="hint">코일 교체 · 검사 · 정지 반영</div></div>
+        <div class="field"><label for="f_safety">톤수 안전율</label><div class="unit-in"><input id="f_safety" type="number" step="0.1" data-s="factors.safety"><span class="u">배</span></div><div class="hint">필요 톤수 = 전단길이 × 두께 × 전단강도 × 안전율</div></div>
+        <div class="field"><label for="f_overhead">일반관리비율</label><div class="unit-in"><input id="f_overhead" type="number" step="1" data-s="factors.overhead"><span class="u">%</span></div></div>
+        <div class="field"><label for="f_profit">이윤율</label><div class="unit-in"><input id="f_profit" type="number" step="1" data-s="factors.profit"><span class="u">%</span></div></div>
+        <div class="field"><label for="f_round">단가 절상 단위</label><select id="f_round" data-s="factors.round"><option value="0.1">0.1원</option><option value="1">1원</option><option value="10">10원</option><option value="100">100원</option></select><div class="hint">소형 단자류는 0.1원 단위</div></div>
+        <div class="field"><label for="f_hours">1일 가동시간</label><div class="unit-in"><input id="f_hours" type="number" step="1" data-s="factors.hoursPerDay"><span class="u">h</span></div><div class="hint">납기 소요일수 산출용</div></div>
+        <div class="field span2"><label class="check" for="f_scrap"><input type="checkbox" id="f_scrap" data-s="factors.scrapCredit"> 스크랩 회수 금액을 재료비에서 차감</label><div class="hint">제품 순중량을 입력한 품목만 (블랭크 − 제품) × 스크랩 단가</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h"><h2>계산식</h2><span class="sub">품목 카드의 숫자가 이렇게 산출됩니다</span></div>
+      <div class="panel-b formula">
+        <div><b>블랭크 중량(g)</b> = 소재 폭 × 이송 피치 × 두께 × 비중 ÷ 1,000 ÷ 취수</div>
+        <div><b>재료비</b> = 블랭크 kg × 소재 단가 × (1 + 로스율) − 스크랩 회수</div>
+        <div><b>가공비(공정별)</b> = 임률 ÷ 60 ÷ SPM ÷ 취수 ÷ 가동률 + 임률 ÷ 60 × 셋업(분) ÷ 수량</div>
+        <div><b>직접원가</b> = 재료비 + 가공비 + 후공정 + 포장 + 부자재</div>
+        <div><b>견적 단가</b> = (직접원가 ÷ (1 − 불량률)) × (1 + 관리비율) × (1 + 이윤율) + 금형 상각</div>
+        <div><b>필요 톤수</b> = 전단 길이 × 두께 × 전단강도 × 안전율 ÷ 1,000 (전단 기준 · 성형력 별도)</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h"><h2>견적 조건 기본값</h2><span class="sub">새 견적을 만들 때 채워집니다</span></div>
+      <div class="panel-b grid g2">
+        <div class="field"><label for="d_valid">유효기간</label><div class="unit-in"><input id="d_valid" type="number" data-s="terms.validDays"><span class="u">일</span></div></div>
+        <div class="field"><label for="d_delivery">납기</label><input id="d_delivery" data-s="terms.delivery"></div>
+        <div class="field"><label for="d_payment">결제조건</label><input id="d_payment" data-s="terms.payment"></div>
+        <div class="field"><label for="d_place">인도조건</label><input id="d_place" data-s="terms.place"></div>
+        <div class="field"><label for="d_packing">포장</label><input id="d_packing" data-s="terms.packing"></div>
+        <div class="field span2"><label for="d_note">비고</label><textarea id="d_note" data-s="terms.note"></textarea></div>
+      </div>
+    </div>
+    <div class="toolbar"><button type="button" class="btn danger sm" id="btnResetSettings">기준 정보를 예시 기본값으로 되돌리기</button></div>
+  </div>
+</section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ===== 기준 정보 기본값 (예시 · 기준 정보 화면에서 수정) ===== */
+const LS = { settings:'shq.settings.v1', quotes:'shq.quotes.v1', current:'shq.current.v1' };
+const DEFAULT_SETTINGS = {
+  company:{ name:'선호테크', ceo:'', regno:'', addr:'경기도 시흥시 ', tel:'', fax:'', email:'', biz:'제조업', item:'프레스 가공 · 프레스 금형', manager:'', bank:'' },
+  presses:[
+    { no:1, name:'60t 크랭크 프레스 (예시)',  ton:60,  type:'기계식', spmMax:150, rate:22000, use:true },
+    { no:2, name:'80t 크랭크 프레스 (예시)',  ton:80,  type:'기계식', spmMax:120, rate:25000, use:true },
+    { no:3, name:'110t 크랭크 프레스 (예시)', ton:110, type:'기계식', spmMax:90,  rate:30000, use:true },
+    { no:4, name:'160t 크랭크 프레스 (예시)', ton:160, type:'기계식', spmMax:60,  rate:36000, use:true },
+    { no:5, name:'250t 크랭크 프레스 (예시)', ton:250, type:'기계식', spmMax:45,  rate:45000, use:true }
+  ],
+  /* price 원/kg · sg 비중 · shear 전단강도 kgf/mm² · scrap 스크랩 매각 단가 원/kg */
+  materials:[
+    { code:'SPCC',     name:'SPCC 냉연강판',          price:1150,  sg:7.85, shear:30, scrap:350 },
+    { code:'SPHC',     name:'SPHC 열연강판',          price:1050,  sg:7.85, shear:30, scrap:350 },
+    { code:'SECC',     name:'SECC 전기아연도금강판',  price:1300,  sg:7.85, shear:30, scrap:330 },
+    { code:'SGCC',     name:'SGCC 용융아연도금강판',  price:1250,  sg:7.85, shear:30, scrap:330 },
+    { code:'SPFC590',  name:'SPFC590 고장력강판',     price:1350,  sg:7.85, shear:45, scrap:350 },
+    { code:'SK5',      name:'SK5 스프링강 (탄소공구강)', price:2800, sg:7.85, shear:55, scrap:300 },
+    { code:'SUS304',   name:'SUS304 스테인리스',      price:5200,  sg:7.93, shear:55, scrap:1800 },
+    { code:'SUS301',   name:'SUS301 스테인리스 (스프링용)', price:5500, sg:7.93, shear:60, scrap:1800 },
+    { code:'SUS430',   name:'SUS430 스테인리스',      price:3000,  sg:7.70, shear:45, scrap:900 },
+    { code:'AL1050',   name:'AL1050 알루미늄',        price:5000,  sg:2.70, shear:10, scrap:1800 },
+    { code:'AL5052',   name:'AL5052 알루미늄',        price:5800,  sg:2.70, shear:18, scrap:1800 },
+    { code:'C2680',    name:'C2680 황동 (65/35)',     price:12500, sg:8.50, shear:28, scrap:6500 },
+    { code:'C1100',    name:'C1100 순동 (터프피치동)', price:15000, sg:8.94, shear:22, scrap:9000 },
+    { code:'C5191',    name:'C5191 인청동',           price:18000, sg:8.80, shear:40, scrap:7500 }
+  ],
+  factors:{ loss:3, defect:1.5, util:85, overhead:10, profit:12, round:1, vat:10, hoursPerDay:8, safety:1.3, scrapCredit:true },
+  terms:{ validDays:30,
+    delivery:'발주 후 협의 (금형 제작 시 T1 샘플 승인 후 양산 착수)',
+    payment:'월말 마감 · 익월 말 현금 (금형비: 발주 시 50% · 승인 시 50%)',
+    place:'귀사 지정 장소 납품 (운송비 별도)',
+    packing:'박스 + 파렛트 (지정 포장 시 별도 협의)',
+    note:'상기 단가는 견적일 기준 소재 시세로 산출되었으며, 소재 시세 ±5% 이상 변동 또는 수량·사양 변경 시 재견적합니다. 스크랩은 당사 회수 조건입니다.' }
+};
+const STATUS = { draft:'작성중', sent:'발송', won:'수주', lost:'실주' };
+const DIE_TYPES = { prog:'프로그레시브', single:'단발', transfer:'트랜스퍼', compound:'복합' };
+const POST_KEYS = [['tap','탭핑 · 나사'],['weld','용접 (스팟 · 너트)'],['plating','도금 (외주)'],['paint','도장 · 분체'],['heat','열처리'],['barrel','바렐 · 버 제거']];
+
+/* ===== 유틸 ===== */
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
+const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+const sum = a => a.reduce((s, v) => s + v, 0);
+const fmt = n => Math.round(num(n)).toLocaleString('ko-KR');
+const fmt1 = (n, d=1) => num(n).toLocaleString('ko-KR', { maximumFractionDigits:d });
+const fmtU = n => { const v = num(n); return Number.isInteger(v) ? fmt(v) : v.toLocaleString('ko-KR', { minimumFractionDigits:1, maximumFractionDigits:1 }); };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad2 = n => String(n).padStart(2,'0');
+function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function addDays(s, days){ const d = s ? new Date(s+'T00:00:00') : new Date(); if (isNaN(d)) return ''; d.setDate(d.getDate()+num(days)); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function kDate(s){ if(!s) return ''; const [y,m,d]=s.split('-'); return `${y}년 ${m}월 ${d}일`; }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function getPath(o,p){ return p.split('.').reduce((a,k)=> a==null ? undefined : a[k], o); }
+function setPath(o,p,v){ const ks=p.split('.'); let a=o; ks.slice(0,-1).forEach(k=>{ if(a[k]==null||typeof a[k]!=='object') a[k]={}; a=a[k]; }); a[ks[ks.length-1]]=v; }
+
+/* 금액 한글 표기: 3,250,000 → 삼백이십오만 */
+function hangulNumber(n){
+  n = Math.floor(Math.abs(num(n))); if (n === 0) return '영';
+  const d = '영일이삼사오육칠팔구', small = ['','십','백','천'], big = ['','만','억','조','경'];
+  let s = '', i = 0;
+  while (n > 0){
+    let part = n % 10000;
+    if (part){
+      let ps = '';
+      for (let j=0; j<4; j++){ const dg = part % 10; if (dg) ps = (dg===1 && j>0 ? '' : d[dg]) + small[j] + ps; part = Math.floor(part/10); }
+      s = ps + big[i] + s;
+    }
+    n = Math.floor(n/10000); i++;
+  }
+  return s;
+}
+
+/* ===== 저장소 (localStorage · 실패해도 화면은 동작) ===== */
+function lsGet(k){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch(e){ return null; } }
+function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e){ return false; } }
+function loadSettings(){
+  const s = lsGet(LS.settings), D = clone(DEFAULT_SETTINGS);
+  if (!s) return D;
+  return { company:{...D.company, ...(s.company||{})}, presses:(s.presses&&s.presses.length)?s.presses:D.presses,
+           materials:(s.materials&&s.materials.length)?s.materials:D.materials, factors:{...D.factors, ...(s.factors||{})}, terms:{...D.terms, ...(s.terms||{})} };
+}
+function saveSettings(){ lsSet(LS.settings, S); }
+function loadQuotes(){ const q = lsGet(LS.quotes); return Array.isArray(q) ? q : null; }
+function saveQuotes(){ lsSet(LS.quotes, QUOTES); }
+
+/* ===== 견적 · 품목 생성 ===== */
+function nextQuoteNo(date){
+  const key = 'SH-' + (date||todayStr()).replace(/-/g,'');
+  const n = QUOTES.filter(q => (q.no||'').startsWith(key)).length + 1;
+  let no = `${key}-${pad2(n)}`, k = n;
+  while (QUOTES.some(q => q.no === no)) { k++; no = `${key}-${pad2(k)}`; }
+  return no;
+}
+function firstPressNo(){ const p = S.presses.find(x => x.use !== false) || S.presses[0]; return p ? p.no : 1; }
+function newProc(name){ return { name:name || '', pressNo:firstPressNo(), spm:40, out:1, setup:30 }; }
+function newItem(){
+  const m = S.materials[0] || { code:'', price:0 };
+  return { id:uid(), name:'', partNo:'', material:m.code, matPrice:m.price, thick:1.0, width:0, pitch:0, partWeight:0, shearLen:0, matSupply:'own',
+           dieType:'prog', procs:[ Object.assign(newProc('프로그레시브 가공'), { pressNo:(S.presses[1]||S.presses[0]||{no:1}).no, spm:60, setup:40 }) ],
+           qty:1000, unit:'EA', post:{tap:0,weld:0,plating:0,paint:0,heat:0,barrel:0}, packing:0, sub:0,
+           mold:{mode:'none', cost:0, amortQty:0, spec:''}, note:'' };
+}
+function newQuote(){
+  const date = todayStr();
+  return { id:uid(), no:nextQuoteNo(date), date, validUntil:addDays(date, S.terms.validDays), status:'draft',
+           customer:{name:'', person:'', tel:'', email:''}, subject:'', items:[newItem()],
+           terms:{ delivery:S.terms.delivery, payment:S.terms.payment, place:S.terms.place, packing:S.terms.packing, note:S.terms.note },
+           vatMode:'excl', costPage:false, createdAt:Date.now(), updatedAt:Date.now() };
+}
+function sampleQuote(){
+  const q = newQuote();
+  q.customer = { name:'㈜한빛전장', person:'구매팀 박민수 과장', tel:'031-000-0000', email:'purchase@example.com' };
+  q.subject = '[예시] 모터 브라켓 외 프레스 가공품 3종 견적';
+  const mk = (o) => Object.assign(newItem(), o);
+  q.items = [
+    mk({ name:'모터 마운트 브라켓', partNo:'SH-BK-2601', material:'SPCC', matPrice:1150, thick:2.0, width:80, pitch:65, partWeight:62, shearLen:260, dieType:'prog',
+         procs:[ { name:'프로그레시브 (BL·PC·BD·FO)', pressNo:3, spm:45, out:1, setup:60 } ], qty:10000,
+         post:{tap:25,weld:0,plating:45,paint:0,heat:0,barrel:0}, packing:8, sub:0,
+         mold:{mode:'separate', cost:28000000, amortQty:0, spec:'프로그레시브 12공정 · SKD11 · 다이세트 400×600'}, note:'M6 탭 2개소 · 아연도금(삼가크로메이트)' }),
+    mk({ name:'접속 단자 (터미널)', partNo:'SH-TM-2602', material:'C2680', matPrice:12500, thick:0.5, width:25, pitch:12, partWeight:0.45, shearLen:48, dieType:'prog',
+         procs:[ { name:'프로그레시브 (2열 취)', pressNo:1, spm:120, out:2, setup:40 } ], qty:50000,
+         post:{tap:0,weld:0,plating:12,paint:0,heat:0,barrel:0}, packing:1, sub:0,
+         mold:{mode:'amortize', cost:9000000, amortQty:500000, spec:'프로그레시브 8공정 2열 · 주석도금 후 릴 포장'}, note:'주석도금 3㎛ 포함' }),
+    mk({ name:'컨트롤 박스 커버', partNo:'SH-CV-2603', material:'SUS304', matPrice:5200, thick:1.0, width:180, pitch:160, partWeight:190, shearLen:680, dieType:'single',
+         procs:[ { name:'블랭킹', pressNo:4, spm:30, out:1, setup:40 }, { name:'드로잉 · 성형', pressNo:5, spm:20, out:1, setup:60 }, { name:'피어싱 · 트리밍', pressNo:2, spm:40, out:1, setup:30 } ], qty:2000,
+         post:{tap:0,weld:0,plating:0,paint:0,heat:0,barrel:30}, packing:25, sub:0,
+         mold:{mode:'separate', cost:16500000, amortQty:0, spec:'단발 3벌 (BL · DR · PC) · SKD11'}, note:'헤어라인 방향 유지 · 보호필름 부착' })
+  ];
+  return q;
+}
+
+/* ===== 원가 계산 엔진 ===== */
+function calcItem(it){
+  const F = S.factors;
+  const mat = S.materials.find(m => m.code === it.material) || S.materials[0] || { price:0, sg:7.85, shear:30, scrap:0, code:'' };
+  const price = num(it.matPrice) || num(mat.price);
+  const procs = Array.isArray(it.procs) ? it.procs : [];
+  const out0 = Math.max(1, Math.round(num(procs[0]?.out)) || 1);
+  const t = num(it.thick), W = num(it.width), P = num(it.pitch);
+  const blankG = W * P * t * num(mat.sg) / 1000 / out0;                 // 개당 블랭크 중량(g)
+  const partG = num(it.partWeight);
+  const scrapG = (partG > 0 && partG < blankG) ? blankG - partG : 0;    // 개당 스크랩(g)
+  const scrapCredit = (F.scrapCredit !== false) ? scrapG / 1000 * num(mat.scrap) : 0;
+  const matGross = blankG / 1000 * price * (1 + num(F.loss) / 100);
+  const customerMat = it.matSupply === 'customer';
+  const matCost = customerMat ? 0 : Math.max(0, matGross - scrapCredit); // 재료비
+  const util = Math.max(1, num(F.util)) / 100;
+  const qty = Math.max(0, num(it.qty));
+  let runCost = 0, setupCost = 0, hours = 0; const procRows = [];
+  procs.forEach(p => {
+    const m = S.presses.find(x => x.no == p.pressNo) || S.presses[0] || { ton:0, rate:0, no:0, name:'', spmMax:0 };
+    const spm = Math.max(0.1, num(p.spm)); const out = Math.max(1, Math.round(num(p.out)) || 1);
+    const run = num(m.rate) / 60 / spm / out / util;                    // 개당 가공비(원)
+    const setupMin = num(p.setup);
+    const setup = qty > 0 ? num(m.rate) / 60 * setupMin / qty : 0;      // 개당 셋업비(원)
+    const strokes = Math.ceil(qty / out);
+    const h = strokes / spm / 60 / util + setupMin / 60;
+    runCost += run; setupCost += setup; hours += h;
+    procRows.push({ p, m, run, setup, strokes, h, spm, out, spmOk: !num(m.spmMax) || spm <= num(m.spmMax) });
+  });
+  const procCost = runCost + setupCost;
+  const post = sum(POST_KEYS.map(([k]) => num(it.post?.[k])));
+  const packing = num(it.packing), sub = num(it.sub);
+  const direct = matCost + procCost + post + packing + sub;             // 직접원가
+  const defectAdj = direct / (1 - Math.min(99, num(F.defect)) / 100) - direct;
+  const base = direct + defectAdj;
+  const overhead = base * num(F.overhead) / 100;
+  const profit = (base + overhead) * num(F.profit) / 100;
+  const mold = it.mold || { mode:'none' };
+  const moldPer = (mold.mode === 'amortize' && num(mold.amortQty) > 0) ? num(mold.cost) / num(mold.amortQty) : 0;
+  const raw = base + overhead + profit + moldPer;
+  const ru = num(F.round) || 1;
+  const unit = Math.ceil(raw / ru - 1e-9) * ru;
+  const amount = Math.round(unit * qty);
+  const days = hours / (num(F.hoursPerDay) || 8);
+  const matKg = qty * blankG / 1000 * (1 + num(F.loss) / 100);          // 소재 소요(kg)
+  const coilM = (P > 0) ? Math.ceil(qty / out0) * P / 1000 : 0;          // 코일 길이(m)
+  const scrapKg = qty * scrapG / 1000;
+  const reqTon = num(it.shearLen) > 0 ? num(it.shearLen) * t * num(mat.shear) * (num(F.safety) || 1.3) / 1000 : 0;
+  const press0 = procRows[0]?.m || null;
+  const tonOk = !reqTon || !press0 || num(press0.ton) >= reqTon;
+  const spmOk = procRows.every(r => r.spmOk);
+  const rec = reqTon ? S.presses.filter(x => x.use !== false && num(x.ton) >= reqTon).sort((a,b) => a.ton - b.ton)[0] : null;
+  const moldSeparate = mold.mode === 'separate' ? num(mold.cost) : 0;
+  return { mat, price, out0, blankG, partG, scrapG, scrapCredit, matGross, matCost, customerMat, procRows, runCost, setupCost, procCost, post, packing, sub,
+           direct, defectAdj, base, overhead, profit, moldPer, raw, unit, qty, amount, hours, days, matKg, coilM, scrapKg, reqTon, press0, tonOk, spmOk, rec, moldSeparate };
+}
+function calcQuote(q){
+  const rows = q.items.map(it => ({ it, c: calcItem(it) }));
+  const itemsTotal = sum(rows.map(r => r.c.amount));
+  const moldTotal = sum(rows.map(r => r.c.moldSeparate));
+  const supply = itemsTotal + moldTotal;
+  const vat = Math.round(supply * num(S.factors.vat) / 100);
+  return { rows, itemsTotal, moldTotal, supply, vat, total: supply + vat };
+}
+
+/* ===== 상태 ===== */
+let S = loadSettings();
+let QUOTES = loadQuotes();
+let Q = null, DIRTY = false;
+if (!QUOTES){ QUOTES = []; QUOTES.push(sampleQuote()); saveQuotes(); }
+{ const cur = lsGet(LS.current); Q = (cur && cur.items) ? cur : clone(QUOTES[0] || newQuote()); }
+Q.items.forEach(it => { if (!Array.isArray(it.procs)) it.procs = [newProc('프레스 가공')]; });
+
+/* ===== 공통 ===== */
+let toastT;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
+function markDirty(){ DIRTY = true; $('#qDirty').textContent = '변경됨 · 저장 필요'; Q.updatedAt = Date.now(); lsSet(LS.current, Q); }
+function clearDirty(){ DIRTY = false; $('#qDirty').textContent = ''; lsSet(LS.current, Q); }
+function readVal(el){ if (el.type === 'checkbox') return el.checked; if (el.type === 'number') return el.value === '' ? '' : num(el.value); return el.value; }
+function writeVal(el, v){ if (el.type === 'checkbox') el.checked = !!v; else if (el.type === 'radio') el.checked = (el.value === String(v ?? '')); else el.value = v ?? ''; }
+
+/* ===== 화면 전환 ===== */
+function showView(name){
+  $$('#nav button').forEach(b => b.classList.toggle('on', b.dataset.view === name));
+  ['quote','list','settings'].forEach(v => { $('#view-' + v).hidden = (v !== name); });
+  if (name === 'list') renderList();
+  if (name === 'settings') renderSettings();
+  if (name === 'quote') { renderPreview(); requestAnimationFrame(scalePaper); }
+}
+$('#nav').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showView(b.dataset.view); });
+$('.mobile-tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
+  $('#workspace').dataset.m = b.dataset.m; $$('.mobile-tabs button').forEach(x => x.classList.toggle('on', x === b)); requestAnimationFrame(scalePaper); });
+
+/* ===== 견적 헤더 폼 ===== */
+function renderQuoteForm(){
+  $$('[data-q]').forEach(el => writeVal(el, getPath(Q, el.dataset.q)));
+  $('#brandCo').textContent = S.company.item || '';
+}
+$$('[data-q]').forEach(el => el.addEventListener('input', () => {
+  const v = readVal(el); setPath(Q, el.dataset.q, v);
+  if (el.dataset.q === 'date') { Q.validUntil = addDays(v, S.terms.validDays); writeVal($('#q_valid'), Q.validUntil); }
+  markDirty(); renderSummary(); renderPreview();
+}));
+
+/* ===== 품목 카드 ===== */
+function pressOptions(sel){
+  return S.presses.filter(m => m.use !== false || m.no == sel).map(m => `<option value="${m.no}" ${m.no == sel ? 'selected' : ''}>${m.no}호기 · ${fmt(m.ton)}t · ${esc(m.name)}</option>`).join('');
+}
+function materialOptions(sel){
+  return S.materials.map(m => `<option value="${esc(m.code)}" ${m.code === sel ? 'selected' : ''}>${esc(m.name)}</option>`).join('');
+}
+function pressChip(c){
+  const p0 = c.press0; if (!p0) return { text:'프레스 미지정', cls:'warn', title:'공정을 추가하세요' };
+  const more = c.procRows.length > 1 ? ` 외 ${c.procRows.length - 1}공정` : '';
+  if (!c.tonOk) return { text:`${p0.no}호기 ${fmt(p0.ton)}t${more}`, cls:'crit', title:`필요 톤수 ${fmt1(c.reqTon,1)}t 초과 · 프레스를 바꾸세요` };
+  if (!c.spmOk) return { text:`${p0.no}호기 ${fmt(p0.ton)}t${more}`, cls:'warn', title:'SPM이 프레스 최대 SPM을 넘습니다' };
+  return { text:`${p0.no}호기 ${fmt(p0.ton)}t${more}`, cls:'', title:'' };
+}
+function stripHTML(c){
+  let ton;
+  if (!c.reqTon) ton = '<span>전단 길이 입력 시 필요 톤수 검토</span>';
+  else if (c.tonOk) ton = `<span class="chip good">필요 톤수 ${fmt1(c.reqTon,1)}t · ${c.press0 ? c.press0.no + '호기 ' + fmt(c.press0.ton) + 't 적합' : ''}</span>`;
+  else ton = `<span class="chip crit">필요 톤수 ${fmt1(c.reqTon,1)}t 초과${c.rec ? ' → ' + c.rec.no + '호기 ' + fmt(c.rec.ton) + 't 권장' : ' · 보유 설비 초과'}</span>`;
+  const spmWarn = c.spmOk ? '' : '<span class="chip warn">SPM 초과</span>';
+  const scrap = c.scrapG ? `스크랩 <b>${fmt1(c.scrapG,2)} g</b>${c.scrapCredit ? ` (회수 −${fmt1(c.scrapCredit,2)}원)` : ''}` : '스크랩 <b>제품 중량 미입력</b>';
+  return `<div class="cost-strip">
+    <div><span class="k">재료비${c.customerMat ? ' (사급)' : ''}</span><b>${fmt1(c.matCost,2)}</b></div>
+    <div><span class="k">가공비 (셋업 ${fmt1(c.setupCost,2)})</span><b>${fmt1(c.procCost,2)}</b></div>
+    <div><span class="k">후공정·포장 등</span><b>${fmt1(c.post + c.packing + c.sub,1)}</b></div>
+    <div><span class="k">불량·관리비·이윤</span><b>${fmt1(c.defectAdj + c.overhead + c.profit,2)}</b></div>
+    <div><span class="k">금형 상각</span><b>${fmt1(c.moldPer,2)}</b></div>
+    <div class="hl"><span class="k">견적 단가 (원)</span><b>${fmtU(c.unit)}</b></div></div>
+  <div class="calc-line"><span>블랭크 <b>${fmt1(c.blankG,2)} g</b></span><span>${scrap}</span><span>프레스 소요 <b>${fmt1(c.hours,1)} h (${fmt1(c.days,1)}일)</b></span><span>소재 소요 <b>${fmt1(c.matKg,1)} kg</b>${c.coilM ? ` · 코일 ${fmt(c.coilM)} m` : ''}</span>${ton}${spmWarn}</div>`;
+}
+function procRowsHTML(it, c){
+  return (it.procs || []).map((p, j) => {
+    const r = c.procRows[j] || { run:0, setup:0, spmOk:true };
+    return `<tr><td class="idx">${j+1}</td>
+      <td><input data-k="procs.${j}.name" value="${esc(p.name)}" placeholder="블랭킹 / 벤딩 / 드로잉"></td>
+      <td><select data-k="procs.${j}.pressNo" style="min-width:170px">${pressOptions(p.pressNo)}</select></td>
+      <td><input type="number" step="1" min="1" data-k="procs.${j}.spm" value="${p.spm}" style="width:76px${r.spmOk ? '' : ';border-color:var(--warn)'}"></td>
+      <td><input type="number" step="1" min="1" data-k="procs.${j}.out" value="${p.out}" style="width:64px"></td>
+      <td><input type="number" step="5" min="0" data-k="procs.${j}.setup" value="${p.setup}" style="width:72px"></td>
+      <td class="cost" data-pc="${j}">${fmt1(r.run + r.setup,2)}원</td>
+      <td><button type="button" class="btn ghost sm" data-act="pdel" data-p="${j}" style="color:var(--crit)" title="공정 삭제">✕</button></td></tr>`;
+  }).join('');
+}
+function itemCard(it, i){
+  const c = calcItem(it);
+  const moldMode = it.mold?.mode || 'none';
+  const chip = pressChip(c);
+  return `<div class="item" data-i="${i}">
+  <div class="item-h"><span class="no">${i+1}</span><span class="nm">${esc(it.name) || '(품명 미입력)'}</span>
+    <span class="chip ${chip.cls}" title="${esc(chip.title)}">${esc(chip.text)}</span>
+    <span class="amt">${fmtU(c.unit)}원 × ${fmt(c.qty)} = <span style="color:var(--accent-deep)">${fmt(c.amount)}원</span></span>
+    <button type="button" class="btn ghost sm" data-act="up" title="위로">▲</button><button type="button" class="btn ghost sm" data-act="down" title="아래로">▼</button>
+    <button type="button" class="btn ghost sm" data-act="dup">복제</button><button type="button" class="btn ghost sm" data-act="del" style="color:var(--crit)">삭제</button></div>
+  <div class="item-b">
+    <div class="grid g6">
+      <div class="field span2"><label>품명</label><input data-k="name" value="${esc(it.name)}" placeholder="예: 모터 마운트 브라켓"></div>
+      <div class="field span2"><label>품번 · 도번</label><input data-k="partNo" value="${esc(it.partNo)}"></div>
+      <div class="field"><label>수량</label><div class="unit-in"><input type="number" step="100" min="0" data-k="qty" value="${it.qty}"><span class="u">${esc(it.unit||'EA')}</span></div></div>
+      <div class="field"><label>단위</label><select data-k="unit">${['EA','SET','PCS'].map(u => `<option ${u === (it.unit||'EA') ? 'selected' : ''}>${u}</option>`).join('')}</select></div>
+    </div>
+    <div class="sec">소재 · 판취 (1공정 기준)</div>
+    <div class="grid g6">
+      <div class="field span2"><label>재질</label><select data-k="material">${materialOptions(it.material)}</select></div>
+      <div class="field"><label>소재 단가</label><div class="unit-in"><input type="number" step="10" data-k="matPrice" value="${it.matPrice}"><span class="u">원/kg</span></div></div>
+      <div class="field"><label>두께 (t)</label><div class="unit-in"><input type="number" step="0.1" min="0" data-k="thick" value="${it.thick}"><span class="u">mm</span></div></div>
+      <div class="field"><label>소재 폭 (W)</label><div class="unit-in"><input type="number" step="1" min="0" data-k="width" value="${it.width}"><span class="u">mm</span></div></div>
+      <div class="field"><label>이송 피치 (P)</label><div class="unit-in"><input type="number" step="1" min="0" data-k="pitch" value="${it.pitch}"><span class="u">mm</span></div></div>
+    </div>
+    <div class="grid g6">
+      <div class="field span2"><label>소재 조달</label><select data-k="matSupply">
+        <option value="own" ${it.matSupply !== 'customer' ? 'selected' : ''}>자사 구매 (재료비 포함)</option>
+        <option value="customer" ${it.matSupply === 'customer' ? 'selected' : ''}>고객 사급 (재료비 제외)</option></select></div>
+      <div class="field span2"><label>제품 순중량 (선택)</label><div class="unit-in"><input type="number" step="0.1" min="0" data-k="partWeight" value="${it.partWeight}"><span class="u">g</span></div><div class="hint">입력 시 스크랩 회수 반영</div></div>
+      <div class="field span2"><label>전단 길이 (선택)</label><div class="unit-in"><input type="number" step="1" min="0" data-k="shearLen" value="${it.shearLen}"><span class="u">mm</span></div><div class="hint">블랭킹 + 피어싱 윤곽 합계 · 필요 톤수 검토</div></div>
+    </div>
+    <div class="sec"><span>프레스 공정</span>
+      <select data-k="dieType" style="width:auto;min-height:26px;padding:2px 6px;font-size:12px">${Object.entries(DIE_TYPES).map(([k, v]) => `<option value="${k}" ${it.dieType === k ? 'selected' : ''}>${v} 금형</option>`).join('')}</select>
+      <span class="right"><button type="button" class="btn ghost sm" data-act="padd">＋ 공정 추가</button></span></div>
+    <div class="tbl-wrap"><table class="proctbl"><thead><tr><th>#</th><th>공정명</th><th>프레스</th><th>SPM</th><th>취수</th><th>셋업 (분)</th><th style="text-align:right">개당 가공비</th><th></th></tr></thead>
+      <tbody id="procs-${i}">${procRowsHTML(it, c)}</tbody></table></div>
+    <div class="sec">후공정 · 포장 · 부자재 (개당 원)</div>
+    <div class="grid g6">
+      ${POST_KEYS.map(([k, l]) => `<div class="field"><label>${l}</label><div class="unit-in"><input type="number" step="1" min="0" data-k="post.${k}" value="${num(it.post?.[k])}"><span class="u">원</span></div></div>`).join('')}
+    </div>
+    <div class="grid g6">
+      <div class="field"><label>포장비</label><div class="unit-in"><input type="number" step="1" min="0" data-k="packing" value="${it.packing}"><span class="u">원</span></div></div>
+      <div class="field"><label>부자재 (너트·리벳 등)</label><div class="unit-in"><input type="number" step="1" min="0" data-k="sub" value="${it.sub}"><span class="u">원</span></div></div>
+      <div class="field" style="grid-column:span 4"><label>비고 (견적서 표시)</label><input data-k="note" value="${esc(it.note)}"></div>
+    </div>
+    <div class="sec">금형</div>
+    <div class="grid g6">
+      <div class="field span2"><label>금형비 처리</label><select data-k="mold.mode">
+        <option value="none" ${moldMode === 'none' ? 'selected' : ''}>해당 없음 (고객 금형 · 기존 금형)</option>
+        <option value="separate" ${moldMode === 'separate' ? 'selected' : ''}>별도 청구 (견적서에 금형비 행 추가)</option>
+        <option value="amortize" ${moldMode === 'amortize' ? 'selected' : ''}>단가에 상각 (금형비 ÷ 상각 수량)</option></select></div>
+      <div class="field span2"><label>금형비</label><div class="unit-in"><input type="number" step="100000" min="0" data-k="mold.cost" value="${num(it.mold?.cost)}" ${moldMode === 'none' ? 'disabled' : ''}><span class="u">원</span></div></div>
+      <div class="field span2"><label>상각 수량</label><div class="unit-in"><input type="number" step="1000" min="0" data-k="mold.amortQty" value="${num(it.mold?.amortQty)}" ${moldMode !== 'amortize' ? 'disabled' : ''}><span class="u">EA</span></div></div>
+    </div>
+    <div class="grid g6">
+      <div class="field" style="grid-column:1/-1"><label>금형 사양 (견적서 금형비 행에 표시)</label><input data-k="mold.spec" value="${esc(it.mold?.spec)}" placeholder="프로그레시브 12공정 · SKD11 · 다이세트 400×600"></div>
+    </div>
+    <div id="strip-${i}">${stripHTML(c)}</div>
+  </div></div>`;
+}
+function renderItems(){
+  const box = $('#items');
+  box.innerHTML = Q.items.length ? Q.items.map(itemCard).join('') : '<div class="empty">품목을 추가하세요.</div>';
+}
+function refreshCard(card, it, i){
+  const c = calcItem(it);
+  $('#strip-' + i).innerHTML = stripHTML(c);
+  card.querySelector('.nm').textContent = it.name || '(품명 미입력)';
+  card.querySelector('.amt').innerHTML = `${fmtU(c.unit)}원 × ${fmt(c.qty)} = <span style="color:var(--accent-deep)">${fmt(c.amount)}원</span>`;
+  const chip = pressChip(c), el = card.querySelector('.item-h .chip'); el.textContent = chip.text; el.className = 'chip ' + chip.cls; el.title = chip.title;
+  c.procRows.forEach((r, j) => { const td = card.querySelector(`[data-pc="${j}"]`); if (td) td.textContent = fmt1(r.run + r.setup, 2) + '원';
+    const spmIn = card.querySelector(`[data-k="procs.${j}.spm"]`); if (spmIn) spmIn.style.borderColor = r.spmOk ? '' : 'var(--warn)'; });
+}
+$('#items').addEventListener('input', e => {
+  const el = e.target, card = el.closest('.item'); if (!card || !el.dataset.k) return;
+  const i = +card.dataset.i, it = Q.items[i], k = el.dataset.k;
+  setPath(it, k, readVal(el));
+  if (k === 'material'){ const m = S.materials.find(x => x.code === el.value); if (m){ it.matPrice = m.price; card.querySelector('[data-k="matPrice"]').value = m.price; } }
+  if (k === 'mold.mode'){ card.querySelector('[data-k="mold.cost"]').disabled = (el.value === 'none'); card.querySelector('[data-k="mold.amortQty"]').disabled = (el.value !== 'amortize'); }
+  if (k === 'unit') card.querySelector('[data-k="qty"]').nextElementSibling.textContent = el.value;
+  refreshCard(card, it, i);
+  markDirty(); renderSummary(); renderPreview();
+});
+$('#items').addEventListener('click', e => {
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const card = b.closest('.item'), i = +card.dataset.i, act = b.dataset.act, it = Q.items[i];
+  if (act === 'padd'){ it.procs.push(newProc('')); markDirty(); renderItems(); renderSummary(); renderPreview();
+    const row = $$(`#procs-${i} tr`).pop(); if (row){ row.querySelector('input')?.focus(); } return; }
+  if (act === 'pdel'){ if (it.procs.length <= 1) return toast('공정은 최소 1개가 필요합니다'); it.procs.splice(+b.dataset.p, 1); markDirty(); renderItems(); renderSummary(); renderPreview(); return; }
+  if (act === 'del'){ if (!confirm(`${i+1}번 품목을 삭제할까요?`)) return; Q.items.splice(i, 1); }
+  if (act === 'dup'){ const c = clone(it); c.id = uid(); Q.items.splice(i + 1, 0, c); }
+  if (act === 'up' && i > 0){ [Q.items[i-1], Q.items[i]] = [Q.items[i], Q.items[i-1]]; }
+  if (act === 'down' && i < Q.items.length - 1){ [Q.items[i+1], Q.items[i]] = [Q.items[i], Q.items[i+1]]; }
+  markDirty(); renderItems(); renderSummary(); renderPreview();
+});
+$('#btnAddItem').addEventListener('click', () => { Q.items.push(newItem()); markDirty(); renderItems(); renderSummary(); renderPreview();
+  const cards = $$('#items .item'); const last = cards[cards.length-1]; if (last){ last.scrollIntoView({ behavior:'smooth', block:'start' }); last.querySelector('input')?.focus(); } });
+
+/* ===== 요약 ===== */
+function renderSummary(){
+  const r = calcQuote(Q);
+  $('#summary').innerHTML = `<div><div class="k">품목 합계 (${Q.items.length}종)</div><div class="v">${fmt(r.itemsTotal)}원</div></div>
+    <div><div class="k">금형비 별도</div><div class="v">${fmt(r.moldTotal)}원</div></div>
+    <div class="total"><div class="k">합계 (부가세 ${fmt(S.factors.vat)}% 포함)</div><div class="v">${fmt(r.total)}원</div></div>`;
+}
+
+/* ===== 견적서 미리보기 ===== */
+function specText(it, c){
+  const parts = [];
+  const n = c.procRows.length;
+  parts.push(`${DIE_TYPES[it.dieType] || '프레스'}${n > 1 ? ` ${n}공정` : ''}`);
+  const tons = [...new Set(c.procRows.map(r => fmt(r.m.ton) + 't'))].join('/');
+  if (tons) parts.push(`${tons} 프레스`);
+  if (num(it.width) && num(it.pitch)) parts.push(`W${fmt1(it.width,1)} × P${fmt1(it.pitch,1)}${c.out0 > 1 ? ` ${c.out0}열` : ''}`);
+  return parts.join(' · ');
+}
+function renderPreview(){
+  const r = calcQuote(Q), C = S.company;
+  const rows = [];
+  r.rows.forEach(({ it, c }, i) => {
+    const notes = [esc(it.note)]; if (c.moldPer) notes.push('금형비 상각 포함'); if (c.customerMat) notes.push('소재 사급');
+    rows.push(`<tr><td class="c">${i+1}</td><td><div>${esc(it.name) || '-'}${it.partNo ? ` <span class="spec">(${esc(it.partNo)})</span>` : ''}</div><div class="spec">${specText(it, c)}</div></td>
+      <td class="c">${esc(it.material)}<div class="spec">t${fmt1(it.thick,2)}</div></td>
+      <td class="n">${fmt(c.qty)}</td><td class="c">${esc(it.unit || 'EA')}</td><td class="n">${fmtU(c.unit)}</td><td class="n">${fmt(c.amount)}</td><td class="spec">${notes.filter(Boolean).join(' · ')}</td></tr>`);
+  });
+  r.rows.filter(x => x.c.moldSeparate > 0).forEach(({ it, c }) => {
+    rows.push(`<tr><td class="c">금형</td><td><div>${esc(it.name)} 금형 제작비</div><div class="spec">${esc(it.mold?.spec) || DIE_TYPES[it.dieType] || ''}</div></td><td class="c">-</td><td class="n">1</td><td class="c">식</td><td class="n">${fmt(c.moldSeparate)}</td><td class="n">${fmt(c.moldSeparate)}</td><td class="spec">별도 청구</td></tr>`);
+  });
+  for (let k = rows.length; k < 7; k++) rows.push('<tr class="blank"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>');
+  const incl = Q.vatMode === 'incl';
+  const headAmt = incl ? r.total : r.supply;
+  const st = S.company.manager ? `${esc(S.company.manager)}` : '';
+  let costPage = '';
+  if (Q.costPage){
+    const F = S.factors;
+    costPage = `<div class="cost-page"><h2>원가 내역서</h2><div class="note">내부 검토용 · 거래처 송부 시 제외 · 계수: 로스 ${F.loss}% · 불량 ${F.defect}% · 가동률 ${F.util}% · 관리비 ${F.overhead}% · 이윤 ${F.profit}% · 안전율 ${F.safety}배 · 스크랩 회수 ${F.scrapCredit !== false ? '반영' : '미반영'}</div>
+      <table><thead><tr><th>품명</th><th>재료비</th><th>가공비</th><th>(셋업)</th><th>후공정</th><th>포장·부자재</th><th>불량반영</th><th>관리비</th><th>이윤</th><th>금형상각</th><th>단가</th><th>수량</th><th>금액</th></tr></thead><tbody>
+      ${r.rows.map(({ it, c }) => `<tr><td>${esc(it.name)}</td><td>${fmt1(c.matCost,2)}</td><td>${fmt1(c.procCost,2)}</td><td>${fmt1(c.setupCost,2)}</td><td>${fmt1(c.post,1)}</td><td>${fmt1(c.packing + c.sub,1)}</td><td>${fmt1(c.defectAdj,2)}</td><td>${fmt1(c.overhead,2)}</td><td>${fmt1(c.profit,2)}</td><td>${fmt1(c.moldPer,2)}</td><td><b>${fmtU(c.unit)}</b></td><td>${fmt(c.qty)}</td><td>${fmt(c.amount)}</td></tr>`).join('')}
+      </tbody></table>
+      <table><thead><tr><th>품명</th><th>공정 (프레스 · SPM · 취수)</th><th>블랭크(g)</th><th>제품(g)</th><th>스크랩(g)</th><th>회수(원)</th><th>스트로크</th><th>소요(h)</th><th>일수</th><th>소재(kg)</th><th>코일(m)</th><th>필요 톤수</th></tr></thead><tbody>
+      ${r.rows.map(({ it, c }) => `<tr><td>${esc(it.name)}</td><td style="white-space:normal;text-align:left">${c.procRows.map(x => `${esc(x.p.name) || '공정'}: ${x.m.no}호기 ${fmt(x.m.ton)}t · ${fmt(x.spm)}spm · ${x.out}취`).join('<br>')}</td><td>${fmt1(c.blankG,2)}</td><td>${c.partG ? fmt1(c.partG,2) : '-'}</td><td>${c.scrapG ? fmt1(c.scrapG,2) : '-'}</td><td>${c.scrapCredit ? fmt1(c.scrapCredit,2) : '-'}</td><td>${fmt(sum(c.procRows.map(x => x.strokes)))}</td><td>${fmt1(c.hours,1)}</td><td>${fmt1(c.days,1)}</td><td>${fmt1(c.matKg,1)}</td><td>${c.coilM ? fmt(c.coilM) : '-'}</td><td>${c.reqTon ? fmt1(c.reqTon,1) + 't ' + (c.tonOk ? '적합' : '초과!') : '-'}</td></tr>`).join('')}
+      </tbody></table></div>`;
+  }
+  $('#paper').innerHTML = `<h1>견 적 서</h1>
+  <div class="meta">
+    <div><table class="lefttbl">
+      <tr><td class="k">견적번호</td><td>${esc(Q.no)}</td></tr>
+      <tr><td class="k">견적일자</td><td>${kDate(Q.date)}</td></tr>
+      <tr><td class="k">수　　신</td><td class="to">${esc(Q.customer.name) || '　'} 귀중</td></tr>
+      <tr><td class="k">참　　조</td><td>${esc(Q.customer.person)}${Q.customer.tel ? ' · ' + esc(Q.customer.tel) : ''}</td></tr>
+      <tr><td class="k">건　　명</td><td>${esc(Q.subject)}</td></tr>
+      <tr><td class="k">유효기간</td><td>${kDate(Q.validUntil)}까지</td></tr>
+    </table></div>
+    <div><table class="boxtbl">
+      <tr><th rowspan="6" style="width:22px;line-height:1.6">공<br>급<br>자</th><th>등록번호</th><td colspan="3">${esc(C.regno)}</td></tr>
+      <tr><th>상　호</th><td>${esc(C.name)}</td><th>대　표</th><td class="stamp">${esc(C.ceo)}<span>(인)</span></td></tr>
+      <tr><th>주　소</th><td colspan="3">${esc(C.addr)}</td></tr>
+      <tr><th>업　태</th><td>${esc(C.biz)}</td><th>종　목</th><td>${esc(C.item)}</td></tr>
+      <tr><th>전　화</th><td>${esc(C.tel)}</td><th>팩　스</th><td>${esc(C.fax)}</td></tr>
+      <tr><th>담당자</th><td>${st}</td><th>이메일</th><td>${esc(C.email)}</td></tr>
+    </table></div>
+  </div>
+  <p class="intro">아래와 같이 견적합니다.</p>
+  <div class="total-line"><span>합계금액 <span class="vatnote">(${incl ? '부가세 포함' : '부가세 별도'})</span></span><b>일금 ${hangulNumber(headAmt)}원정 &nbsp;(₩ ${fmt(headAmt)})</b></div>
+  <table class="items"><thead><tr><th style="width:32px">No</th><th>품　명 / 규　격</th><th style="width:74px">재질 · 두께</th><th style="width:60px">수량</th><th style="width:34px">단위</th><th style="width:70px">단　가</th><th style="width:88px">금　액</th><th style="width:92px">비　고</th></tr></thead>
+  <tbody>${rows.join('')}
+    <tr class="sum"><td colspan="6" class="c">공급가액</td><td class="n">${fmt(r.supply)}</td><td></td></tr>
+    <tr class="sum"><td colspan="6" class="c">부가세 (${fmt(S.factors.vat)}%)</td><td class="n">${fmt(r.vat)}</td><td></td></tr>
+    <tr class="sum"><td colspan="6" class="c">합　계</td><td class="n">${fmt(r.total)}</td><td></td></tr>
+  </tbody></table>
+  <table class="terms">
+    <tr><td class="k">납　　기</td><td>${esc(Q.terms.delivery)}</td></tr>
+    <tr><td class="k">결제조건</td><td>${esc(Q.terms.payment)}</td></tr>
+    <tr><td class="k">인도조건</td><td>${esc(Q.terms.place)}</td></tr>
+    <tr><td class="k">포　　장</td><td>${esc(Q.terms.packing)}</td></tr>
+    ${C.bank ? `<tr><td class="k">입금계좌</td><td>${esc(C.bank)}</td></tr>` : ''}
+    <tr><td class="k">비　　고</td><td>${esc(Q.terms.note).replace(/\n/g, '<br>')}</td></tr>
+  </table>
+  <div class="foot"><span>${esc(C.name)}${C.addr && C.addr.trim() ? ' · ' + esc(C.addr) : ''}${C.tel ? ' · Tel ' + esc(C.tel) : ''}</span><span>${esc(Q.no)}</span></div>
+  ${costPage}`;
+  scalePaper();
+}
+function scalePaper(){
+  const wrap = $('#paperWrap'), sc = $('#paperScale'), p = $('#paper');
+  if (!wrap.offsetParent) return;
+  const cs = getComputedStyle(wrap); const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight); const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const s = Math.min(1, (wrap.clientWidth - padX) / 794);
+  sc.style.transform = `scale(${s})`;
+  wrap.style.height = (p.offsetHeight * s + padY) + 'px';
+}
+new ResizeObserver(() => scalePaper()).observe($('#paperWrap'));
+
+/* ===== 저장 · 새 견적 · 복제 · 인쇄 ===== */
+function saveQuote(){
+  if (!Q.no) Q.no = nextQuoteNo(Q.date);
+  const i = QUOTES.findIndex(q => q.id === Q.id);
+  Q.updatedAt = Date.now();
+  if (i >= 0) QUOTES[i] = clone(Q); else QUOTES.unshift(clone(Q));
+  saveQuotes(); clearDirty(); toast(`저장했습니다 · ${Q.no}`);
+}
+function openQuote(q){ Q = clone(q); Q.items.forEach(it => { if (!Array.isArray(it.procs)) it.procs = [newProc('프레스 가공')]; }); clearDirty(); renderQuoteForm(); renderItems(); renderSummary(); renderPreview(); showView('quote'); window.scrollTo({ top:0 }); }
+function startNew(){
+  if (DIRTY && confirm('현재 견적에 저장하지 않은 변경이 있습니다. 저장할까요?')) saveQuote();
+  openQuote(newQuote()); toast('새 견적을 만들었습니다');
+}
+function duplicateQuote(src){
+  const q = clone(src); q.id = uid(); q.date = todayStr(); q.no = nextQuoteNo(q.date); q.validUntil = addDays(q.date, S.terms.validDays); q.status = 'draft';
+  q.subject = (q.subject || '').replace(/^\[예시\]\s*/, ''); q.items.forEach(it => it.id = uid()); q.createdAt = q.updatedAt = Date.now();
+  openQuote(q); markDirty(); toast(`복제했습니다 · ${q.no}`);
+}
+$('#btnSave').addEventListener('click', saveQuote);
+$('#btnNew').addEventListener('click', startNew);
+$('#btnDup').addEventListener('click', () => duplicateQuote(Q));
+$('#btnPrint').addEventListener('click', () => { showView('quote'); renderPreview(); setTimeout(() => window.print(), 50); });
+document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's'){ e.preventDefault(); saveQuote(); } });
+
+/* ===== 내보내기 ===== */
+function download(name, text, type){
+  try { const blob = new Blob([text], { type }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+  catch(e){ toast('이 환경에서는 파일 저장이 제한됩니다'); }
+}
+$('#btnCsv').addEventListener('click', () => {
+  const r = calcQuote(Q); const q = s => `"${String(s ?? '').replace(/"/g, '""')}"`;
+  const L = [[`견적번호`, Q.no, `견적일자`, Q.date, `거래처`, Q.customer.name, `건명`, Q.subject].map(q).join(','), '',
+    ['No','품명','품번','재질','두께','소재폭','피치','취수','블랭크(g)','제품(g)','스크랩(g)','소재조달','금형방식','공정','수량','단위','재료비','가공비','셋업','후공정','포장','부자재','불량반영','관리비','이윤','금형상각','단가','금액','금형비(별도)','필요톤수','비고'].map(q).join(',')];
+  r.rows.forEach(({ it, c }, i) => L.push([i+1, it.name, it.partNo, it.material, it.thick, it.width, it.pitch, c.out0, c.blankG.toFixed(2), it.partWeight, c.scrapG.toFixed(2), c.customerMat ? '사급' : '자사',
+    DIE_TYPES[it.dieType] || '', c.procRows.map(x => `${x.p.name} ${x.m.no}호기 ${x.m.ton}t ${x.spm}spm`).join(' / '), c.qty, it.unit, c.matCost.toFixed(2), c.procCost.toFixed(2), c.setupCost.toFixed(2), c.post, c.packing, c.sub,
+    c.defectAdj.toFixed(2), c.overhead.toFixed(2), c.profit.toFixed(2), c.moldPer.toFixed(2), c.unit, c.amount, c.moldSeparate, c.reqTon ? c.reqTon.toFixed(1) : '', it.note].map(q).join(',')));
+  L.push('', [`공급가액`, r.supply, `부가세`, r.vat, `합계`, r.total].map(q).join(','));
+  download(`${Q.no || 'quote'}_견적.csv`, '﻿' + L.join('\r\n'), 'text/csv;charset=utf-8');
+});
+$('#btnCopy').addEventListener('click', async () => {
+  const r = calcQuote(Q), C = S.company;
+  const lines = [`[견적서] ${Q.no} · ${kDate(Q.date)}`, `수신: ${Q.customer.name} ${Q.customer.person}`.trim(), `건명: ${Q.subject}`, `공급자: ${C.name}${C.tel ? ' (' + C.tel + ')' : ''}`, ''];
+  r.rows.forEach(({ it, c }, i) => lines.push(`${i+1}. ${it.name} (${it.material} t${it.thick} · ${specText(it, c)}) ${fmt(c.qty)}${it.unit} × ${fmtU(c.unit)}원 = ${fmt(c.amount)}원${it.note ? ' / ' + it.note : ''}`));
+  r.rows.filter(x => x.c.moldSeparate).forEach(({ it, c }) => lines.push(`- ${it.name} 금형 제작비 (별도): ${fmt(c.moldSeparate)}원`));
+  lines.push('', `공급가액 ${fmt(r.supply)}원 / 부가세 ${fmt(r.vat)}원 / 합계 ${fmt(r.total)}원`, `유효기간: ${kDate(Q.validUntil)}까지`, `납기: ${Q.terms.delivery}`, `결제: ${Q.terms.payment}`, `인도: ${Q.terms.place}`);
+  try { await navigator.clipboard.writeText(lines.join('\n')); toast('견적 내용을 복사했습니다'); } catch(e){ toast('클립보드 복사가 차단되었습니다'); }
+});
+$('#btnBackup').addEventListener('click', () => download(`선호테크견적_백업_${todayStr()}.json`, JSON.stringify({ settings:S, quotes:QUOTES, exportedAt:new Date().toISOString() }, null, 2), 'application/json'));
+$('#restoreFile').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => { try { const d = JSON.parse(rd.result); if (!Array.isArray(d.quotes)) throw 0;
+      if (!confirm(`백업의 견적 ${d.quotes.length}건과 기준 정보를 현재 데이터에 병합할까요?`)) return;
+      d.quotes.forEach(q => { const i = QUOTES.findIndex(x => x.id === q.id); if (i >= 0) QUOTES[i] = q; else QUOTES.push(q); });
+      if (d.settings){ S = { ...S, ...d.settings }; saveSettings(); }
+      saveQuotes(); renderList(); toast('복원했습니다'); } catch(err){ toast('백업 파일 형식이 올바르지 않습니다'); } e.target.value = ''; };
+  rd.readAsText(f);
+});
+
+/* ===== 견적 목록 ===== */
+function renderList(){
+  const kw = ($('#listSearch').value || '').trim().toLowerCase(), st = $('#listFilter').value;
+  const rows = QUOTES.filter(q => (!st || q.status === st) && (!kw || [q.no, q.customer?.name, q.subject].join(' ').toLowerCase().includes(kw)))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.updatedAt || 0) - (a.updatedAt || 0));
+  $('#listCount').textContent = `${rows.length}건 / 전체 ${QUOTES.length}건`;
+  if (!rows.length){ $('#listBody').innerHTML = '<div class="empty">저장된 견적이 없습니다. 견적 작성 화면에서 저장하세요.</div>'; return; }
+  $('#listBody').innerHTML = `<table><thead><tr><th>견적번호</th><th>견적일자</th><th>거래처</th><th>건명</th><th style="text-align:right">품목</th><th style="text-align:right">공급가액</th><th>상태</th><th></th></tr></thead><tbody>
+    ${rows.map(q => { const r = calcQuote(q); return `<tr data-id="${q.id}"><td><button type="button" class="no" data-act="open">${esc(q.no)}</button></td><td>${esc(q.date)}</td><td>${esc(q.customer?.name)}</td><td>${esc(q.subject)}</td>
+      <td class="n">${q.items.length}</td><td class="n">${fmt(r.supply)}원</td><td><select data-act="status" aria-label="상태">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${q.status === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
+      <td class="n"><button type="button" class="btn ghost sm" data-act="open">열기</button><button type="button" class="btn ghost sm" data-act="dup">복제</button><button type="button" class="btn ghost sm" data-act="del" style="color:var(--crit)">삭제</button></td></tr>`; }).join('')}
+  </tbody></table>`;
+}
+$('#listBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.tagName === 'SELECT') return;
+  const id = b.closest('tr').dataset.id, q = QUOTES.find(x => x.id === id); if (!q) return;
+  if (b.dataset.act === 'open'){ if (DIRTY && Q.id !== id && confirm('현재 견적에 저장하지 않은 변경이 있습니다. 저장할까요?')) saveQuote(); openQuote(q); }
+  if (b.dataset.act === 'dup') duplicateQuote(q);
+  if (b.dataset.act === 'del'){ if (!confirm(`${q.no} 견적을 삭제할까요? 되돌릴 수 없습니다.`)) return; QUOTES = QUOTES.filter(x => x.id !== id); saveQuotes(); renderList(); toast('삭제했습니다'); }
+});
+$('#listBody').addEventListener('change', e => {
+  const sel = e.target.closest('select[data-act="status"]'); if (!sel) return;
+  const q = QUOTES.find(x => x.id === sel.closest('tr').dataset.id); if (q){ q.status = sel.value; if (Q.id === q.id){ Q.status = sel.value; writeVal($('#q_status'), sel.value); } saveQuotes(); }
+});
+$('#listSearch').addEventListener('input', renderList);
+$('#listFilter').addEventListener('change', renderList);
+
+/* ===== 기준 정보 ===== */
+function renderSettings(){
+  $$('[data-s]').forEach(el => writeVal(el, getPath(S, el.dataset.s)));
+  $('#pressTbl').innerHTML = `<thead><tr><th>호기</th><th>설비명 (메이커 · 모델)</th><th>톤수 (t)</th><th>형식</th><th>최대 SPM</th><th>시간당 임률 (원/h)</th><th>사용</th><th></th></tr></thead><tbody>
+    ${S.presses.map((m, i) => `<tr><td class="idx"><input type="number" step="1" data-m="${i}" data-k="no" value="${m.no}" style="width:52px;text-align:center" aria-label="호기"></td><td><input data-m="${i}" data-k="name" value="${esc(m.name)}" aria-label="설비명"></td><td><input type="number" step="10" data-m="${i}" data-k="ton" value="${m.ton}" style="width:84px" aria-label="톤수"></td>
+      <td><select data-m="${i}" data-k="type" style="width:96px" aria-label="형식">${['기계식','유압','서보','너클','고속'].map(d => `<option ${m.type === d ? 'selected' : ''}>${d}</option>`).join('')}</select></td>
+      <td><input type="number" step="5" data-m="${i}" data-k="spmMax" value="${m.spmMax}" style="width:84px" aria-label="최대 SPM"></td>
+      <td><input type="number" step="500" data-m="${i}" data-k="rate" value="${m.rate}" style="width:110px" aria-label="임률"></td><td style="text-align:center"><input type="checkbox" data-m="${i}" data-k="use" ${m.use !== false ? 'checked' : ''} style="width:auto;min-height:0" aria-label="사용"></td>
+      <td><button type="button" class="btn ghost sm" data-mdel="${i}" style="color:var(--crit)">삭제</button></td></tr>`).join('')}</tbody>`;
+  $('#matTbl').innerHTML = `<thead><tr><th>코드 (견적서 표기)</th><th>소재명</th><th>단가 (원/kg)</th><th>비중</th><th>전단강도 (kgf/mm²)</th><th>스크랩 단가 (원/kg)</th><th></th></tr></thead><tbody>
+    ${S.materials.map((m, i) => `<tr><td><input data-mt="${i}" data-k="code" value="${esc(m.code)}" style="width:110px" aria-label="코드"></td><td><input data-mt="${i}" data-k="name" value="${esc(m.name)}" aria-label="소재명"></td>
+      <td><input type="number" step="50" data-mt="${i}" data-k="price" value="${m.price}" style="width:100px" aria-label="단가"></td><td><input type="number" step="0.01" data-mt="${i}" data-k="sg" value="${m.sg}" style="width:76px" aria-label="비중"></td>
+      <td><input type="number" step="1" data-mt="${i}" data-k="shear" value="${m.shear}" style="width:84px" aria-label="전단강도"></td><td><input type="number" step="50" data-mt="${i}" data-k="scrap" value="${m.scrap}" style="width:100px" aria-label="스크랩 단가"></td>
+      <td><button type="button" class="btn ghost sm" data-mtdel="${i}" style="color:var(--crit)">삭제</button></td></tr>`).join('')}</tbody>`;
+}
+$('#view-settings').addEventListener('input', e => {
+  const el = e.target;
+  if (el.dataset.s){ setPath(S, el.dataset.s, readVal(el)); if (el.dataset.s === 'company.item') $('#brandCo').textContent = el.value; }
+  else if (el.dataset.m != null){ S.presses[+el.dataset.m][el.dataset.k] = readVal(el); }
+  else if (el.dataset.mt != null){ S.materials[+el.dataset.mt][el.dataset.k] = readVal(el); }
+  else return;
+  saveSettings(); renderSummary(); renderPreview();
+});
+$('#view-settings').addEventListener('click', e => {
+  const d = e.target.closest('[data-mtdel]');
+  if (d){ if (S.materials.length <= 1) return toast('소재는 최소 1개가 필요합니다'); S.materials.splice(+d.dataset.mtdel, 1); saveSettings(); renderSettings(); return; }
+  const p = e.target.closest('[data-mdel]');
+  if (p){ if (S.presses.length <= 1) return toast('프레스는 최소 1대가 필요합니다'); if (!confirm('이 프레스를 목록에서 지울까요? (사용 안 함으로 두는 편이 안전합니다)')) return; S.presses.splice(+p.dataset.mdel, 1); saveSettings(); renderSettings(); }
+});
+$('#btnAddMat').addEventListener('click', () => { S.materials.push({ code:'NEW', name:'새 소재', price:0, sg:7.85, shear:30, scrap:0 }); saveSettings(); renderSettings(); $$('#matTbl input[data-k="code"]').pop()?.focus(); });
+$('#btnAddPress').addEventListener('click', () => { const no = Math.max(0, ...S.presses.map(m => num(m.no))) + 1; S.presses.push({ no, name:'새 프레스', ton:0, type:'기계식', spmMax:0, rate:0, use:true }); saveSettings(); renderSettings(); $$('#pressTbl input[data-k="name"]').pop()?.focus(); });
+$('#btnResetSettings').addEventListener('click', () => { if (!confirm('기준 정보를 예시 기본값으로 되돌릴까요? (견적 데이터는 유지)')) return; S = clone(DEFAULT_SETTINGS); saveSettings(); renderSettings(); renderItems(); renderSummary(); renderPreview(); toast('기본값으로 되돌렸습니다'); });
+
+/* ===== 라이트/다크 전환 — 선택은 이 브라우저에만 기억 ===== */
+function applyTheme(m, save){ document.documentElement.setAttribute('data-mode', m); $$('[data-mode-btn]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.modeBtn === m))); if (save){ try { localStorage.setItem('sh-theme', m); } catch(e){} } }
+$$('[data-mode-btn]').forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.modeBtn, true)));
+applyTheme(document.documentElement.getAttribute('data-mode') === 'dark' ? 'dark' : 'light', false);
+
+/* ===== 시작 ===== */
+renderQuoteForm(); renderItems(); renderSummary(); renderPreview();
+window.addEventListener('load', () => setTimeout(scalePaper, 300));
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(scalePaper);
+</script>
+</body>
+</html>
