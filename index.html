@@ -183,6 +183,15 @@ main{max-width:1480px;margin:0 auto;padding-block:20px 60px;padding-inline:20px}
 .file-btn{position:relative;overflow:hidden}
 .file-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .logo-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.design-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.design-grid button{text-align:left;font:inherit;color:inherit;background:var(--surface);border:2px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer}
+.design-grid button:hover{border-color:var(--ink-3)}
+.design-grid button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.design-grid .nm{font-weight:600;font-size:13px;display:flex;gap:6px;align-items:center}
+.design-grid .no{font-size:10.5px;color:var(--accent-ink);background:var(--accent);border-radius:3px;padding:0 5px}
+.design-grid .ds{font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.45}
+.design-grid .sw{display:flex;gap:3px;margin-top:6px}
+.design-grid .sw i{width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.15);display:block}
 .logo-row img{height:48px;width:auto;max-width:170px;background:#fff;border:1px solid var(--line);border-radius:4px;padding:4px}
 .paper .head{display:grid;grid-template-columns:150px 1fr 150px;align-items:center;margin-bottom:20px}
 .paper .head .logo{height:64px;width:auto;max-width:150px;object-fit:contain;justify-self:start}
@@ -227,6 +236,86 @@ main{max-width:1480px;margin:0 auto;padding-block:20px 60px;padding-inline:20px}
   .paper{box-shadow:none;width:auto;min-height:0;padding:0;font-size:12px}
   .paper .foot{position:static;margin-top:16px}
   .paper .cost-page{border-top:0;margin-top:0;padding-top:0}
+}
+/* ===== 견적서 디자인 10안 — .paper[data-design] 로 전환. 색은 인쇄에도 그대로 나간다 ===== */
+.paper{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.paper .head .logo{background:transparent}
+/* 02 스틸 블루 밴드 — 상단 파란 띠, 표 머리글 파랑 */
+.paper[data-design="steel-band"]{--paper-line:#2F4F73;--paper-muted:#5A6E86;--paper-shade:#E3ECF7}
+.paper[data-design="steel-band"] .head{background:#1D5FAE;color:#fff;padding:18px 24px;border-radius:4px;margin-bottom:22px}
+.paper[data-design="steel-band"] .head h1{color:#fff}
+.paper[data-design="steel-band"] .head .logo{background:#fff;border-radius:4px;padding:5px 8px;box-sizing:content-box;height:52px}
+.paper[data-design="steel-band"] .items th{background:#1D5FAE;color:#fff;border-color:#1D5FAE}
+.paper[data-design="steel-band"] .items tr.sum td{background:#E3ECF7}
+.paper[data-design="steel-band"] .total-line{border-color:#1D5FAE}
+.paper[data-design="steel-band"] .foot{border-top-color:#1D5FAE}
+/* 03 네이비 프레임 — 이중 테두리 액자, 남색 머리글 */
+.paper[data-design="navy-frame"]{--paper-line:#1B2E4B;--paper-muted:#5B6B84;--paper-shade:#E8EDF5}
+.paper[data-design="navy-frame"]::before{content:"";position:absolute;inset:14px;border:2px solid #1B2E4B;outline:1px solid #1B2E4B;outline-offset:3px;pointer-events:none}
+.paper[data-design="navy-frame"] h1{color:#1B2E4B}
+.paper[data-design="navy-frame"] .items th{background:#1B2E4B;color:#fff;border-color:#1B2E4B}
+.paper[data-design="navy-frame"] .items tr.sum td{background:#E8EDF5}
+.paper[data-design="navy-frame"] .total-line{border-color:#1B2E4B}
+.paper[data-design="navy-frame"] .foot{border-top-color:#1B2E4B}
+/* 04 차콜 헤더 블록 — 짙은 회색 블록에 로고·제목 */
+.paper[data-design="charcoal-block"]{--paper-line:#3A3F47;--paper-muted:#6B7280;--paper-shade:#ECEEF1}
+.paper[data-design="charcoal-block"] .head{background:#2B2F36;color:#fff;padding:20px 26px;border-radius:4px;margin-bottom:22px}
+.paper[data-design="charcoal-block"] .head h1{color:#fff;letter-spacing:.5em}
+.paper[data-design="charcoal-block"] .head .logo{background:#fff;border-radius:4px;padding:5px 8px;box-sizing:content-box;height:52px}
+.paper[data-design="charcoal-block"] .items th{background:#2B2F36;color:#fff;border-color:#2B2F36}
+.paper[data-design="charcoal-block"] .items tr.sum td{background:#ECEEF1}
+.paper[data-design="charcoal-block"] .total-line{border-color:#2B2F36;background:#F4F5F7;padding-left:12px;padding-right:12px}
+.paper[data-design="charcoal-block"] .foot{border-top-color:#2B2F36}
+/* 05 아이보리 페이퍼 — 크림색 종이, 갈색 선 */
+.paper[data-design="ivory"]{--paper:#FBF7EE;--paper-ink:#2A2420;--paper-line:#7A5C3E;--paper-muted:#8A7A6A;--paper-shade:#F1E8D8;background:var(--paper)}
+.paper[data-design="ivory"] h1{color:#5A3E24}
+.paper[data-design="ivory"] .head{border-bottom:1px solid #C9B79C;padding-bottom:12px}
+.paper[data-design="ivory"] .items th{background:#EADFC9}
+.paper[data-design="ivory"] .total-line{border-color:#7A5C3E}
+.paper[data-design="ivory"] .foot{border-top-color:#C9B79C}
+/* 06 브러시드 메탈 — 금속 결 배경, 흰 표 */
+.paper[data-design="brushed-metal"]{--paper-line:#4B5563;--paper-muted:#6B7280;--paper-shade:#DDE1E6;background:repeating-linear-gradient(90deg,rgba(255,255,255,.6) 0 1px,rgba(255,255,255,0) 1px 3px),linear-gradient(180deg,#F5F6F8,#E6E9EE)}
+.paper[data-design="brushed-metal"] h1{color:#374151;letter-spacing:.5em}
+.paper[data-design="brushed-metal"] .head{border-bottom:2px solid #9AA3B0;padding-bottom:10px}
+.paper[data-design="brushed-metal"] .boxtbl td,.paper[data-design="brushed-metal"] .items td{background:#fff}
+.paper[data-design="brushed-metal"] .boxtbl th{background:#DDE1E6}
+.paper[data-design="brushed-metal"] .items th{background:linear-gradient(#E5E7EB,#CBD1D9)}
+.paper[data-design="brushed-metal"] .items tr.sum td{background:#DDE1E6}
+.paper[data-design="brushed-metal"] .total-line{background:#fff;border-color:#4B5563;padding-left:12px;padding-right:12px}
+/* 07 로고 워터마크 — 가운데 연한 SH 로고 */
+.paper[data-design="watermark"]::after{content:"";position:absolute;left:50%;top:50%;width:400px;height:480px;transform:translate(-50%,-50%);background:var(--wm) center/contain no-repeat;opacity:.06;pointer-events:none}
+.paper[data-design="watermark"] .head{border-bottom:2px solid #1D5FAE;padding-bottom:12px}
+.paper[data-design="watermark"] h1{color:#1D5FAE}
+.paper[data-design="watermark"] .items th{background:#E3ECF7}
+.paper[data-design="watermark"] .total-line{border-color:#1D5FAE}
+/* 08 포레스트 그린 — 녹색 머리글, 이중선 헤더 */
+.paper[data-design="forest-green"]{--paper-line:#2F5D45;--paper-muted:#5F7A69;--paper-shade:#E4EFE8}
+.paper[data-design="forest-green"] h1{color:#1F4D36}
+.paper[data-design="forest-green"] .head{border-bottom:3px double #2F5D45;padding-bottom:10px}
+.paper[data-design="forest-green"] .items th{background:#2F5D45;color:#fff;border-color:#2F5D45}
+.paper[data-design="forest-green"] .items tr.sum td{background:#E4EFE8}
+.paper[data-design="forest-green"] .total-line{border-color:#2F5D45;background:#F1F7F3;padding-left:12px;padding-right:12px}
+.paper[data-design="forest-green"] .foot{border-top-color:#2F5D45}
+/* 09 버건디 클래식 — 와인색 선, 격식형 */
+.paper[data-design="burgundy"]{--paper-line:#6B1F2A;--paper-muted:#8A5A60;--paper-shade:#F5E9EA}
+.paper[data-design="burgundy"] h1{color:#6B1F2A}
+.paper[data-design="burgundy"] .head{border-top:4px solid #6B1F2A;border-bottom:1px solid #6B1F2A;padding:10px 0}
+.paper[data-design="burgundy"] .items th{background:#F5E9EA;color:#6B1F2A}
+.paper[data-design="burgundy"] .items tr.sum td{background:#F5E9EA}
+.paper[data-design="burgundy"] .total-line{border-color:#6B1F2A}
+.paper[data-design="burgundy"] .foot{border-top-color:#6B1F2A}
+/* 10 그라데이션 미니멀 — 상단 연파랑 그라데이션, 세로선 없는 표 */
+.paper[data-design="gradient-minimal"]{--paper-line:#B9C6D6;--paper-muted:#7E8BA0;--paper-shade:#F3F6FA;background:linear-gradient(180deg,#E8F0FA 0,#FFFFFF 280px)}
+.paper[data-design="gradient-minimal"] h1{color:#1D5FAE;letter-spacing:.3em}
+.paper[data-design="gradient-minimal"] .boxtbl th{background:#F3F6FA}
+.paper[data-design="gradient-minimal"] .items th{background:transparent;border-left:0;border-right:0;border-top:0;border-bottom:2px solid #1D5FAE;color:#1D5FAE}
+.paper[data-design="gradient-minimal"] .items td{border-left:0;border-right:0;border-color:#D9E1EA}
+.paper[data-design="gradient-minimal"] .items tr.sum td{background:#F3F6FA}
+.paper[data-design="gradient-minimal"] .total-line{border-top:2px solid #1D5FAE;border-bottom:1px solid #B9C6D6}
+.paper[data-design="gradient-minimal"] .foot{border-top-color:#B9C6D6}
+@media print{
+  .paper[data-design="navy-frame"]{padding:30px 32px 60px}
+  .paper[data-design="navy-frame"] .foot{position:absolute;left:32px;right:32px;bottom:22px;margin-top:0}
 }
 </style>
 <script>try{if(localStorage.getItem('sh-theme')==='dark')document.documentElement.setAttribute('data-mode','dark')}catch(e){}</script>
@@ -308,6 +397,7 @@ main{max-width:1480px;margin:0 auto;padding-block:20px 60px;padding-inline:20px}
         <button type="button" class="btn sm" id="btnCsv">CSV(엑셀) 내보내기</button>
         <button type="button" class="btn sm" id="btnCopy">견적 내용 텍스트 복사</button>
         <button type="button" class="btn sm" id="btnDup">이 견적 복제</button>
+        <label class="check" for="designSel" style="gap:5px;font-size:12px;color:var(--ink-2)">견적서 디자인 <select id="designSel" style="width:auto;min-height:28px;padding:2px 6px;font-size:12px"></select></label>
         <span style="margin-left:auto;font-size:11px;color:var(--ink-3)">A4 세로 · Ctrl+S 저장</span>
       </div>
       <div class="paper-wrap" id="paperWrap"><div class="paper-scale" id="paperScale"><div class="paper" id="paper"></div></div></div>
@@ -359,6 +449,11 @@ main{max-width:1480px;margin:0 auto;padding-block:20px 60px;padding-inline:20px}
             <button type="button" class="btn sm" id="btnLogoDefault">명함 로고로 되돌리기</button><button type="button" class="btn sm ghost" id="btnLogoClear">로고 없이</button></div>
           <div class="hint">배경이 투명한 PNG가 가장 깔끔합니다 (600KB 이하). 이 브라우저에 저장되며 백업 파일에도 포함됩니다.</div></div>
       </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h"><h2>견적서 디자인</h2><span class="sub">10안 중 선택 · 미리보기와 인쇄에 그대로 적용</span></div>
+      <div class="panel-b design-grid" id="designGrid"></div>
     </div>
 
     <div class="panel">
@@ -450,6 +545,7 @@ const DEFAULT_SETTINGS = {
     { code:'C1100',    name:'C1100 순동 (터프피치동)', price:15000, sg:8.94, shear:22, scrap:9000 },
     { code:'C5191',    name:'C5191 인청동',           price:18000, sg:8.80, shear:40, scrap:7500 }
   ],
+  design:'classic',
   factors:{ loss:3, defect:1.5, util:85, overhead:10, profit:12, round:1, vat:10, hoursPerDay:8, safety:1.3, scrapCredit:true },
   terms:{ validDays:30,
     delivery:'발주 후 협의 (금형 제작 시 T1 샘플 승인 후 양산 착수)',
@@ -459,6 +555,7 @@ const DEFAULT_SETTINGS = {
     note:'상기 단가는 견적일 기준 소재 시세로 산출되었으며, 소재 시세 ±5% 이상 변동 또는 수량·사양 변경 시 재견적합니다. 스크랩은 당사 회수 조건입니다.' }
 };
 const STATUS = { draft:'작성중', sent:'발송', won:'수주', lost:'실주' };
+const DESIGNS = [{"id": "classic", "name": "클래식 화이트", "desc": "지금 쓰는 기본안. 흰 종이에 검정 선, 어떤 프린터에서도 같은 결과", "sw": ["#FFFFFF", "#F1F1F1", "#333333"]}, {"id": "steel-band", "name": "스틸 블루 밴드", "desc": "상단에 회사색 띠를 두르고 표 머리글도 파랑. 앱 화면과 같은 인상", "sw": ["#1D5FAE", "#E3ECF7", "#2F4F73"]}, {"id": "navy-frame", "name": "네이비 프레임", "desc": "이중 테두리 액자에 남색 머리글. 격식 있는 공문서 느낌", "sw": ["#1B2E4B", "#E8EDF5", "#FFFFFF"]}, {"id": "charcoal-block", "name": "차콜 헤더 블록", "desc": "짙은 회색 블록에 로고와 제목. 금속 가공 업종에 어울리는 묵직함", "sw": ["#2B2F36", "#ECEEF1", "#F4F5F7"]}, {"id": "ivory", "name": "아이보리 페이퍼", "desc": "크림색 종이에 갈색 선. 따뜻하고 오래된 거래처에 보내기 좋은 톤", "sw": ["#FBF7EE", "#EADFC9", "#7A5C3E"]}, {"id": "brushed-metal", "name": "브러시드 메탈", "desc": "금속 결 배경 위에 흰 표. 프레스·판금 회사라는 것을 배경이 말해 줌", "sw": ["#E6E9EE", "#CBD1D9", "#4B5563"]}, {"id": "watermark", "name": "로고 워터마크", "desc": "흰 종이 가운데 SH 로고를 연하게 깔고 파란 제목. 복제 방지 인상까지", "sw": ["#FFFFFF", "#E3ECF7", "#1D5FAE"]}, {"id": "forest-green", "name": "포레스트 그린", "desc": "녹색 머리글과 이중선 헤더. 친환경·안정감을 주는 배색", "sw": ["#2F5D45", "#E4EFE8", "#F1F7F3"]}, {"id": "burgundy", "name": "버건디 클래식", "desc": "와인색 굵은 상단선과 연분홍 머리글. 전통 있는 회사 느낌", "sw": ["#6B1F2A", "#F5E9EA", "#FFFFFF"]}, {"id": "gradient-minimal", "name": "그라데이션 미니멀", "desc": "상단 연파랑 그라데이션, 세로선 없는 가벼운 표. 요즘 스타일", "sw": ["#E8F0FA", "#F3F6FA", "#1D5FAE"]}];
 const DIE_TYPES = { prog:'프로그레시브', single:'단발', transfer:'트랜스퍼', compound:'복합' };
 const POST_KEYS = [['tap','탭핑 · 나사'],['weld','용접 (스팟 · 너트)'],['plating','도금 (외주)'],['paint','도장 · 분체'],['heat','열처리'],['barrel','바렐 · 버 제거']];
 
@@ -507,7 +604,7 @@ function loadSettings(){
   const c = s.company || {};
   if (!c.ceo && !c.tel && !c.regno) s.company = { ...D.company, ...(c.bank ? { bank:c.bank } : {}) };
   return { company:{...D.company, ...(s.company||{})}, presses:(s.presses&&s.presses.length)?s.presses:D.presses,
-           materials:(s.materials&&s.materials.length)?s.materials:D.materials, factors:{...D.factors, ...(s.factors||{})}, terms:{...D.terms, ...(s.terms||{})} };
+           materials:(s.materials&&s.materials.length)?s.materials:D.materials, factors:{...D.factors, ...(s.factors||{})}, terms:{...D.terms, ...(s.terms||{})}, design:(s.design||D.design) };
 }
 function saveSettings(){ lsSet(LS.settings, S); }
 function loadQuotes(){ const q = lsGet(LS.quotes); return Array.isArray(q) ? q : null; }
@@ -851,6 +948,7 @@ function renderPreview(){
       </tbody></table></div>`;
   }
   const logo = (typeof C.logo === 'string' && C.logo.startsWith('data:image/')) ? `<img class="logo" src="${C.logo}" alt="${esc(C.name)} 로고">` : '<span></span>';
+  applyDesign();
   $('#paper').innerHTML = `<div class="head">${logo}<h1>견 적 서</h1><span></span></div>
   <div class="meta">
     <div><table class="lefttbl">
@@ -892,6 +990,19 @@ function renderPreview(){
   ${costPage}`;
   scalePaper();
 }
+function applyDesign(){
+  const p = $('#paper'), C = S.company;
+  p.dataset.design = DESIGNS.some(d => d.id === S.design) ? S.design : 'classic';
+  p.style.setProperty('--wm', (typeof C.logo === 'string' && C.logo.startsWith('data:image/')) ? `url("${C.logo}")` : 'none');
+}
+function renderDesignSel(){
+  const cur = DESIGNS.some(d => d.id === S.design) ? S.design : 'classic';
+  $('#designSel').innerHTML = DESIGNS.map((d, i) => `<option value="${d.id}" ${d.id === cur ? 'selected' : ''}>${pad2(i+1)} ${esc(d.name)}</option>`).join('');
+  $('#designGrid').innerHTML = DESIGNS.map((d, i) => `<button type="button" data-design="${d.id}" aria-pressed="${d.id === cur}"><div class="nm"><span class="no">${pad2(i+1)}</span>${esc(d.name)}</div><div class="ds">${esc(d.desc)}</div><div class="sw">${d.sw.map(c => `<i style="background:${c}"></i>`).join('')}</div></button>`).join('');
+}
+function setDesign(id){ S.design = id; saveSettings(); renderDesignSel(); renderPreview(); toast(`견적서 디자인: ${DESIGNS.find(d => d.id === id)?.name || id}`); }
+$('#designSel').addEventListener('change', e => setDesign(e.target.value));
+$('#designGrid').addEventListener('click', e => { const b = e.target.closest('button[data-design]'); if (b) setDesign(b.dataset.design); });
 function scalePaper(){
   const wrap = $('#paperWrap'), sc = $('#paperScale'), p = $('#paper');
   if (!wrap.offsetParent) return;
@@ -1028,7 +1139,7 @@ $('#view-settings').addEventListener('click', e => {
 });
 $('#btnAddMat').addEventListener('click', () => { S.materials.push({ code:'NEW', name:'새 소재', price:0, sg:7.85, shear:30, scrap:0 }); saveSettings(); renderSettings(); $$('#matTbl input[data-k="code"]').pop()?.focus(); });
 $('#btnAddPress').addEventListener('click', () => { const no = Math.max(0, ...S.presses.map(m => num(m.no))) + 1; S.presses.push({ no, name:'새 프레스', ton:0, type:'기계식', spmMax:0, rate:0, use:true }); saveSettings(); renderSettings(); $$('#pressTbl input[data-k="name"]').pop()?.focus(); });
-$('#btnResetSettings').addEventListener('click', () => { if (!confirm('기준 정보를 예시 기본값으로 되돌릴까요? (견적 데이터는 유지)')) return; S = clone(DEFAULT_SETTINGS); saveSettings(); renderSettings(); renderItems(); renderSummary(); renderPreview(); toast('기본값으로 되돌렸습니다'); });
+$('#btnResetSettings').addEventListener('click', () => { if (!confirm('기준 정보를 예시 기본값으로 되돌릴까요? (견적 데이터는 유지)')) return; S = clone(DEFAULT_SETTINGS); saveSettings(); renderSettings(); renderDesignSel(); renderItems(); renderSummary(); renderPreview(); toast('기본값으로 되돌렸습니다'); });
 
 /* ===== 라이트/다크 전환 — 선택은 이 브라우저에만 기억 ===== */
 function applyTheme(m, save){ document.documentElement.setAttribute('data-mode', m); $$('[data-mode-btn]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.modeBtn === m))); if (save){ try { localStorage.setItem('sh-theme', m); } catch(e){} } }
@@ -1036,7 +1147,7 @@ $$('[data-mode-btn]').forEach(b => b.addEventListener('click', () => applyTheme(
 applyTheme(document.documentElement.getAttribute('data-mode') === 'dark' ? 'dark' : 'light', false);
 
 /* ===== 시작 ===== */
-renderQuoteForm(); renderItems(); renderSummary(); renderPreview();
+renderQuoteForm(); renderDesignSel(); renderItems(); renderSummary(); renderPreview();
 window.addEventListener('load', () => setTimeout(scalePaper, 300));
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(scalePaper);
 </script>
